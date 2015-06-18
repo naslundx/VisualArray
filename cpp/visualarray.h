@@ -7,6 +7,8 @@ public:
 	VisualArray(int size);
 	~VisualArray();
 
+	//TODO: If tracking changes cannot be done,
+	//implement set() and swap() functions instead.
 	unsigned T operator [](int i) const;
 	unsigned T& operator [](const int i);
 
