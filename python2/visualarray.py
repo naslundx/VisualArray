@@ -5,7 +5,7 @@ from time import sleep
 from random import randint
 
 class VisualArray:
-	def __init__(self, value, defaultcolor="white", defaulthighlight="blue", autostart=False, animationspeed=500, width=200, height=200):
+	def __init__(self, value, defaultcolor="white", defaulthighlight="blue", defaultseparatorcolor="red", autostart=False, animationspeed=100, width=200, height=200):
 		# Copy array
 		if isinstance(value,list):
 			self.data = list(value)
@@ -19,6 +19,7 @@ class VisualArray:
 		# Graphics settings
 		self.gfx_defaultcolor = defaultcolor
 		self.gfx_defaulthighlight = defaulthighlight
+		self.gfx_defaultseparatorcolor = defaultseparatorcolor
 		self.gfx_lasthighlights = []
 		self.gfx_initwait = 500
 		self.gfx_autostart = autostart
@@ -101,9 +102,11 @@ class VisualArray:
 
 			self.action_queue.append(("highlight", index, color))
 
-	def gfx_separate(self, left_index, width=3.0):
+	def gfx_separate(self, left_index, color=None, width=3.0):
 		if left_index >= -1 and left_index <= len(self.data):
-			self.action_queue.append(("separate", left_index, width))
+			if not color:
+				color = self.gfx_defaultseparatorcolor
+			self.action_queue.append(("separate", left_index, color, width))
 
 	def gfx_deseparate(self, left_index):
 		if left_index >= -1 and left_index <= len(self.data):
@@ -204,14 +207,16 @@ class VisualArray:
 				self.gfx_lasthighlights.append(item)
 			elif op[0]=='separate':
 				x = self.gfx_windowmargin + self.gfx_left + op[1]*self.gfx_rectwidth
-				line = self.canvas.create_line(x,self.gfx_top,x,self.gfx_bottom,width=op[2])
+				line = self.canvas.create_line(x,self.gfx_top,x,self.gfx_bottom,fill=op[2],width=op[3])
 				self.gfx_separators.append((op[1], line))
 			elif op[0]=='deseparate':
-				for line in self.gfx_separators:
-					if line[0]==op[1]:
-						self.canvas.delete(line[1])
-						self.gfx_separators.remove(line)
+				i = len(self.gfx_separators)-1
+				while i>=0:
+					if (self.gfx_separators[i])[0]==op[1]:
+						self.canvas.delete((self.gfx_separators[i])[1])
+						self.gfx_separators.remove(self.gfx_separators[i])
 						break
+					i -= 1
 			else:
 				item = self.gfx_rectangles[op[0]]
 				value = self.data[op[0]]
@@ -223,3 +228,5 @@ class VisualArray:
 
 			if repeat and self.gfx_playing:
 				self.canvas.after(self.gfx_speed, self.render_next)
+		else:
+			self.gui_play['text']='Play'
