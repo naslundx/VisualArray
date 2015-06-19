@@ -5,7 +5,7 @@ from time import sleep
 from random import randint
 
 class VisualArray:
-	def __init__(self, value, defaultcolor="white", defaulthighlight="blue", waittime=1000, animationspeed=500, width=200, height=200):
+	def __init__(self, value, defaultcolor="white", defaulthighlight="blue", autostart=False, animationspeed=500, width=200, height=200):
 		# Copy array
 		if isinstance(value,list):
 			self.data = list(value)
@@ -20,7 +20,9 @@ class VisualArray:
 		self.gfx_defaultcolor = defaultcolor
 		self.gfx_defaulthighlight = defaulthighlight
 		self.gfx_lasthighlights = []
-		self.gfx_initwait = waittime
+		self.gfx_initwait = 500
+		self.gfx_autostart = autostart
+		self.gfx_playing = autostart
 		self.gfx_speed = animationspeed
 		self.gfx_bottom = height
 		self.gfx_right = width
@@ -59,19 +61,9 @@ class VisualArray:
 		self.data.append(value)
 		self.original.append(value)
 
-	def set_default_values(self, start_index=0, increment=1):
-		for i in range(len(self.data)):
-			self.data[i] = start_index + i*increment
-
 	def clear_history(self):
 		self.original = list(self.data)
 		self.action_queue = []
-
-	def shuffle(self):
-		for i in range(len(self.data)):
-			j = randint(0,len(self.data)-1)
-			self.data[i], self.data[j] = self.data[j], self.data[i]
-		self.clear_history()
 
 	def next_operation(self):
 		if self.action_queue:
@@ -115,22 +107,41 @@ class VisualArray:
 
 	def gfx_deseparate(self, left_index):
 		if left_index >= -1 and left_index <= len(self.data):
-			self.action_queue.append(("deseparate", left_index))		
+			self.action_queue.append(("deseparate", left_index))
+
+	def gui_play(self):
+		if self.gfx_playing:
+			self.gui_play['text'] = 'Play'
+			self.gfx_playing = False
+		else:
+			self.gui_play['text'] = 'Pause'
+			self.canvas.after(100, self.render_next)
+			self.gfx_playing = True
+
+	def gui_restart(self):
+		None
+
+	def gui_stepnext(self):
+		self.render_next(repeat=False)
+
+	def gui_stepprev(self):
+		None
 
 	def render(self):
 		# Set gfx constants
 		self.gfx_top = 0
 		self.gfx_left = 0	
 		self.gfx_windowmargin = 10	
+		self.gui_space = 30
 		self.gfx_scale = (self.gfx_bottom - self.gfx_top - self.gfx_windowmargin) / max(self.data)
 		self.gfx_rectwidth = (self.gfx_right - self.gfx_left - self.gfx_windowmargin) / len(self.data)		
 
 		# Init graphics window
 		self.root = Tkinter.Tk()
 		self.root.title("VisualArray")
-		self.root.geometry(str(self.gfx_bottom+self.gfx_windowmargin)+"x"+str(self.gfx_right+self.gfx_windowmargin))
+		self.root.geometry(str(self.gfx_bottom+self.gfx_windowmargin)+"x"+str(self.gfx_right+self.gfx_windowmargin+self.gui_space))
 		self.canvas = Tkinter.Canvas(self.root)
-
+		
 		# Create rectangles
 		self.gfx_rectangles = []
 		self.gfx_separators = []
@@ -142,14 +153,26 @@ class VisualArray:
 			self.canvas.itemconfig(rect, fill=self.gfx_defaultcolor)
 			self.gfx_rectangles.append(rect)
 
+		self.gui_play = Tkinter.Button(self.canvas,text='Play', command=self.gui_play)
+		#self.gui_restart = Tkinter.Button(self.canvas,text='Restart', command=self.gui_restart)
+		#self.gui_prev = Tkinter.Button(self.canvas,text='<', command=self.gui_stepprev)
+		self.gui_next = Tkinter.Button(self.canvas,text='>', command=self.gui_stepnext)
+		self.canvas.create_window(30, self.gfx_bottom+20, window=self.gui_play)
+		#self.canvas.create_window(90, self.gfx_bottom+20, window=self.gui_restart)
+		#self.canvas.create_window(145, self.gfx_bottom+20, window=self.gui_prev)
+		self.canvas.create_window(183, self.gfx_bottom+20, window=self.gui_next)
+
 		self.canvas.pack(fill=Tkinter.BOTH)
 
 		# Start playback
-		self.canvas.after(self.gfx_initwait, self.rendernext)
+		if self.gfx_autostart:
+			self.canvas.after(self.gfx_initwait, self.render_next)
+			self.canvas.itemconfig(self.gui_play, text='Pause')
+
 		self.root.mainloop()  
 		
 
-	def rendernext(self):
+	def render_next(self, repeat=True):
 		for item in self.gfx_lasthighlights:
 			self.canvas.itemconfig(item, fill=self.gfx_defaultcolor)
 		self.gfx_lasthighlights = []			
@@ -198,4 +221,5 @@ class VisualArray:
 				self.gfx_lasthighlights.append(item)
 				print "Set", op[0], "=", op[1]
 
-			self.canvas.after(self.gfx_speed, self.rendernext)
+			if repeat and self.gfx_playing:
+				self.canvas.after(self.gfx_speed, self.render_next)
