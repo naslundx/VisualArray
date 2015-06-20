@@ -14,7 +14,7 @@ struct VisualArrayHistory {
 class VisualArrayData {
 public:
 	VisualArrayData();
-	VisualArrayData(int _pos, VisualArray& _parent);
+	VisualArrayData(int _pos, VisualArray* _parent);
 	operator int();
 	
 	// usual arithmetical operations
@@ -23,7 +23,7 @@ public:
 private:
 	int data;
 	int pos;
-	VisualArray& parent;
+	VisualArray* parent;
 };
 
 //template<class T>
@@ -37,6 +37,7 @@ public:
 	VisualArrayData operator [](int i) const;
 	VisualArrayData& operator [](const int i);
 
+	void addSetEvent(int pos, int data)
 	void gfxHighlight(int index, Color);
 	void gfxColor(int index, Color);
 	void gfxDecolor(int index);
@@ -47,7 +48,7 @@ public:
 	void render();
 
 private:
-	std::vector<int> nextOperation();
+	VisualArrayHistory nextOperation();
 	void renderNext();
 
 	bool mGraphicsReady = false;
