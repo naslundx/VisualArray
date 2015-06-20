@@ -1,16 +1,32 @@
 #include <vector>
 #include <deque>
 
-// USE THIS STRUCT INSTEAD OF std::vector<int> FOR HISTORY
-template<class T>
-struct VisualArrayData {
+//template<class T>
+struct VisualArrayHistory {
 	VisualArray.HISTORY_TYPE type;
-	T data;
+	int pos;
+	int data;
 	float size;
 	Color color;
 };
 
-template<class T>
+//template<typename T>
+class VisualArrayData {
+public:
+	VisualArrayData();
+	VisualArrayData(int _pos, VisualArray& _parent);
+	operator int();
+	
+	// usual arithmetical operations
+	// comparator operations between itself and int
+	// add any extra friend functions between this class and int
+private:
+	int data;
+	int pos;
+	VisualArray& parent;
+};
+
+//template<class T>
 class VisualArray {
 public:
 	static enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE };
@@ -18,10 +34,8 @@ public:
 	VisualArray(int size);
 	~VisualArray();
 
-	//TODO: If tracking changes cannot be done, implement set() and swap() functions instead.
-	// Perhaps a really smart pointer can track changes
-	unsigned T operator [](int i) const;
-	unsigned T& operator [](const int i);
+	VisualArrayData operator [](int i) const;
+	VisualArrayData& operator [](const int i);
 
 	void gfxHighlight(int index, Color);
 	void gfxColor(int index, Color);
@@ -38,12 +52,11 @@ private:
 
 	bool mGraphicsReady = false;
 	int mSize;
-	T *mData;
-	T *mOriginal;
-	std::deque< VisualArrayData<T> > mHistory;
+	VisualArrayData *mData;
+	VisualArrayData *mOriginal;
+	std::deque< VisualArrayHistory > mHistory;
 	std::vector<int> mRectangles;
 	std::vector<int> mLastHighlights;
 
-	// Missing: default color, highlight color
+	Color gfxDefaultColor, gfxDefaultHighlightColor, gfxDefaultSeparatorColor;
 };
-
