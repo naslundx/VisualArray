@@ -5,8 +5,8 @@ def quickSort(alist):
 
 def quickSortHelper(alist,first,last,level):
     if first<last:
-    	alist.gfx_separate(first,2*level+1) # Add separators to mark
-    	alist.gfx_separate(last+1,2*level+1) # where the current operations are
+    	alist.gfx_separate(first, width=2*level+1) # Add separators to mark
+    	alist.gfx_separate(last+1, width=2*level+1) # where the current operations are
 
     	splitpoint = partition(alist,first,last)
 
