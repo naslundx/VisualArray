@@ -37,7 +37,7 @@ public:
 	VisualArrayData operator [](int i) const;
 	VisualArrayData& operator [](const int i);
 
-	void addSetEvent(int pos, int data)
+	void addSetEvent(int pos, int data);
 	void gfxHighlight(int index, Color);
 	void gfxColor(int index, Color);
 	void gfxDecolor(int index);
