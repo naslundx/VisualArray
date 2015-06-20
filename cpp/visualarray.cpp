@@ -1,6 +1,11 @@
-/* TODO
+/* TODO:
+ * Complete the VisualArrayData class - it should be a wrapper of int that reports all changes to its parent
+ * Make sure everything compiles
+ * Fix "rendering" in console to debug (forget about colors and highlights)
  *
- * So many things
+ * When everything works:
+ * Template VisualArray and VisualArrayData to work with arbitrary members
+ * Fix proper rendering and interactivity (play/pause, step next)
  */
  
 //template<class T>
@@ -13,6 +18,16 @@ VisualArrayData::VisualArrayData(int _pos, VisualArray* _parent) {
 	pos = _pos;
 	parent = _parent;
 }
+
+//template<class T>
+VisualArrayData::operator int() {
+	// not sure how to do this
+	
+	// how to report changes:
+	//parent->addSetEvent(this->pos, this->data);
+}
+
+// many operators on VisualArrayData missing
 
 //template<class T>
 VisualArray::VisualArray(int size) {
@@ -97,7 +112,6 @@ void VisualArray::gfxSeparate(int leftindex, float size, Color color) {
 
 		mHistory.push_back(op);
 	}
-
 }
 
 //template<class T>
@@ -110,7 +124,6 @@ void VisualArray::gfxDeseparate(int leftindex) {
 
 		mHistory.push_back(op);
 	}
-
 }
 
 //template<class T>
@@ -131,7 +144,6 @@ void VisualArray::clearHistory() {
 
 //template<class T>
 void VisualArray::addSetEvent(int pos, int data) {
-	// Called by the VisualArrayData 
 	VisualArrayHistory event;
 	event.type = HISTORY_TYPE.SET;
 	event.pos = pos;
@@ -166,11 +178,11 @@ VisualArrayHistory VisualArray::nextOperation() {
 
 			// Check if swap
 			if (opb.event == HISTORY_TYPE.SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {
+				mOriginal[op.pos] = op.data;
+				mOriginal[opb.pos] = opb.data;
+				
 				op.event = HISTORY_TYPE.SWAP;
 				op.data = opb.pos;
-
-				// Swap elements
-				// ...
 
 				return op;
 			}
