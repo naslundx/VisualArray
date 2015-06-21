@@ -1,8 +1,4 @@
 /* TODO:
- * Complete the VisualArrayData class - it should be a wrapper of int that reports all changes to its parent
- * Make sure everything compiles
- * Fix "rendering" in console to debug (forget about colors and highlights)
- *
  * When everything works:
  * Template VisualArray and VisualArrayData to work with arbitrary members
  * Fix proper rendering and interactivity (play/pause, step next)
@@ -16,9 +12,16 @@ VisualArrayData::VisualArrayData() {
 }
 
 //template<typename T>
-VisualArrayData::VisualArrayData(int _pos, VisualArray* _parent) {
-	pos = _pos;
-	parent = _parent;
+VisualArrayData::VisualArrayData(int pos, VisualArray* parent) {
+	this->pos = pos;
+	this->parent = parent;
+}
+
+void VisualArrayData::reportChange() {
+	std::cout << "reporting to " << parent << "\n";
+	if (parent != NULL) {
+		parent->addSetEvent(this->pos, this->data);
+	}	
 }
 
 //template<typename T>
@@ -27,79 +30,103 @@ VisualArrayData::operator int() {
 }
 
 //template<typename T>
-VisualArrayData& VisualArrayData::operator=(const int& other) {
+VisualArrayData& VisualArrayData::operator = (const int& other) {
 	data = other;
-	parent->addSetEvent(this->pos, this->data);
-
+	std::cout << "\n\t\tsetting int data=" << data;
+	reportChange();
 	return *this;
 }
-
-/*VisualArrayData& VisualArrayData::operator=(const VisualArrayData& other) {
-	data = other;
-	parent->addSetEvent(this->pos, this->data);
-
+/*
+VisualArrayData& VisualArrayData::operator = (VisualArrayData& other) {
+	data = other.get();
+	std::cout << "\n\t\tsetting vad data=" << data;
+	reportChange();
 	return *this;
-}*/
-
+}
+*/
 VisualArrayData& VisualArrayData::operator += (VisualArrayData& right) {
 	this->data += right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator -= (VisualArrayData& right) {
 	this->data -= right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator *= (VisualArrayData& right) {
-	this->data = this->data * right;
+	this->data *= right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator /= (VisualArrayData& right) {
-	this->data = this->data / right;
+	this->data /= right;
+	reportChange();
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator %= (VisualArrayData& right) {
+	this->data %= right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator += (int right) {
 	this->data += right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator -= (int right) {
 	this->data -= right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator *= (int right) {
 	this->data *= right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator /= (int right) {
 	this->data /= right;
+	reportChange();
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator %= (int right) {
+	this->data %= right;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData& VisualArrayData::operator++() {
 	++data;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData VisualArrayData::operator++(int unused) {
 	VisualArrayData result = *this;
 	++data;
+	reportChange();
 	return result;
 }
 
 VisualArrayData& VisualArrayData::operator--() {
 	--data;
+	reportChange();
 	return *this;
 }
 
 VisualArrayData VisualArrayData::operator--(int unused) {
 	VisualArrayData result = *this;
 	--data;
+	reportChange();
 	return result;
 }
 
@@ -111,17 +138,14 @@ VisualArray::VisualArray(int size) {
 		//mData = new int[size];
 		//mOriginal = new int[size];
 		mData = new VisualArrayData[size];
-		mOriginal = new VisualArrayData[size];
+		mOriginal = new int[size];
 		mSize = size;
 		
 		for (int i=0; i<size; i++) {
 			mData[i] = VisualArrayData(i, this);
-			mOriginal[i] = VisualArrayData(i, this);
 		}
 	}
 }
-
-//TODO: Allow to init with existing array and {...} as in C++11
 
 //template<typename T>
 VisualArray::~VisualArray() {
@@ -230,7 +254,7 @@ void temp_print(VisualArrayData* array, int length) {
 
 //template<typename T>
 void VisualArray::render() {
-	TODO: FIX
+	//TODO: FIX
 	if (!mGraphicsReady) {
 		// There is no data in mOriginal!
 		return;
@@ -256,6 +280,13 @@ void VisualArray::render() {
 
 	while (!mHistory.empty()) {
 		VisualArrayHistory event = nextOperation();
+
+		if (event.type == SET) {
+			std::cout << "\n\tSet index=" << event.pos << " to " << event.data;
+		}
+		else if (event.type == SWAP) {
+			std::cout << "\n\tSwap index=" << event.pos << " with index=" << event.pos2;
+		}
 
 		std::cout << "\n";
 		for (int i=0; i<mSize; i++) {
