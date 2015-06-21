@@ -5,7 +5,7 @@
 
 int main() {
 	std::cout << "Creating";
-	VisualArray array(10);
+	VisualArray<int> array(10);
 
 	for (int i=9; i>=0; i--) {
 		array[9-i] = i;
@@ -13,10 +13,10 @@ int main() {
 
 	array.clearHistory();
 
-	float a = -array[9];
-	int b = -array[8];
-	array[9] = -b;
-	array[8] = -a;
+	int temp = array[9];
+	array[9] = array[8];
+	array[8] = temp;
+	array.gfxSeparate(3, 2.5f, Color(3));
 	
 	//array[9] = 100;
 
