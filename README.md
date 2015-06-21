@@ -21,6 +21,6 @@ Please feel free to help out.
 
 - **Python**: Working. Restart and step back currently not implemented. GUI problems. No animations.
 - **C++**: Not working. Engine not finished and GUI not even started.
-- (**C#**: Not started.)
+- **C#**: Not working. Engine not finished and GUI not even started.
 - (**Java**: Not started.)
-- (**Javscript** Not started.)
+- (**Javascript** Not started.)
