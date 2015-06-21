@@ -73,10 +73,11 @@ class VisualArray:
 			if isinstance(top[0], int):
 				if self.action_queue != []:
 					nelem = self.action_queue[0]
-					if top[1] == self.original[nelem[0]] and nelem[1] == self.original[top[0]]:
-						self.original[top[0]], self.original[nelem[0]] = top[1], nelem[1]
-						self.action_queue.pop(0)
-						return ('swap', top[0], nelem[0])
+					if isinstance(nelem[0], int):
+						if top[1] == self.original[nelem[0]] and nelem[1] == self.original[top[0]]:
+							self.original[top[0]], self.original[nelem[0]] = top[1], nelem[1]
+							self.action_queue.pop(0)
+							return ('swap', top[0], nelem[0])
 
 				self.original[top[0]] = top[1]
 
