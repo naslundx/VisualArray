@@ -7,6 +7,8 @@
  * Template VisualArray and VisualArrayData to work with arbitrary members
  * Fix proper rendering and interactivity (play/pause, step next)
  */
+
+ #include "visualarray.h"
  
 //template<class T>
 VisualArrayData::VisualArrayData() {
@@ -20,26 +22,30 @@ VisualArrayData::VisualArrayData(int _pos, VisualArray* _parent) {
 }
 
 //template<class T>
-VisualArrayData::operator int() {
+/*VisualArrayData::operator int() {
 	// not sure how to do this
 	
 	// how to report changes:
 	//parent->addSetEvent(this->pos, this->data);
-}
+}*/
 
 // many operators on VisualArrayData missing
 
 //template<class T>
 VisualArray::VisualArray(int size) {
+	mGraphicsReady = false;
+
 	if (size>0) {
-		mData = new VisualArrayData[size];
-		mOriginal = new VisualArrayData[size];
+		mData = new int[size];
+		mOriginal = new int[size];
+		//mData = new VisualArrayData[size];
+		//mOriginal = new VisualArrayData[size];
 		mSize = size;
 		
-		for (int i=0; i<size; i++) {
-			mData = VisualArrayData(i, this);
-			mOriginal = VisualArrayData(i, this);
-		}
+		/*for (int i=0; i<size; i++) {
+			mData[i] = VisualArrayData(i, this);
+			mOriginal[i] = VisualArrayData(i, this);
+		}*/
 	}
 }
 
@@ -52,14 +58,14 @@ VisualArray::~VisualArray() {
 }
 
 //template<class T>
-VisualArrayData VisualArray::operator[](int i) const {
+int VisualArray::operator[](int i) const {
 	return mData[i];
 }
 
 //template<class T>
-VisualArrayData& VisualArray::operator [](const int i) {
+int& VisualArray::operator [](const int i) {
 	// Note: History is tracked from the VisualArrayData class
-	return &(mData[i]);
+	return (mData[i]);
 }
 
 //template<class T>
@@ -67,7 +73,7 @@ void VisualArray::gfxHighlight(int index, Color color) {
 	if (index >= 0 && index < mSize) {
 		VisualArrayHistory event;
 		
-		event.type = VisualArray.HISTORY_TYPE.HIGHLIGHT;
+		event.type = HIGHLIGHT;
 		event.pos = index;
 		event.color = color;
 
@@ -76,15 +82,15 @@ void VisualArray::gfxHighlight(int index, Color color) {
 }
 
 //template<class T>
-void VisualArray::gfxColor(int index, Color) {
+void VisualArray::gfxColor(int index, Color color) {
 	if (index >= 0 && index < mSize) {
 		VisualArrayHistory event;
 		
-		event.type = VisualArray.HISTORY_TYPE.COLOR;
+		event.type = COLOR;
 		event.pos = index;
 		event.color = color;
 
-		mHistory.push_back(op);
+		mHistory.push_back(event);
 	}
 }
 
@@ -93,36 +99,36 @@ void VisualArray::gfxDecolor(int index) {
 	if (index >= 0 && index < mSize) {
 		VisualArrayHistory event;
 		
-		event.type = VisualArray.HISTORY_TYPE.DECOLOR;
+		event.type = DECOLOR;
 		event.pos = index;
 
-		mHistory.push_back(op);
+		mHistory.push_back(event);
 	}
 }
 
 //template<class T>
 void VisualArray::gfxSeparate(int leftindex, float size, Color color) {
-	if (leftindex >= -1 && index <= mSize) {
+	if (leftindex >= -1 && leftindex <= mSize) {
 		VisualArrayHistory event;
 		
-		event.type = VisualArray.HISTORY_TYPE.SEPARATE;
+		event.type = SEPARATE;
 		event.pos = leftindex;
 		event.size = size;
 		event.color = color;
 
-		mHistory.push_back(op);
+		mHistory.push_back(event);
 	}
 }
 
 //template<class T>
 void VisualArray::gfxDeseparate(int leftindex) {
-	if (leftindex >= -1 && index <= mSize) {
+	if (leftindex >= -1 && leftindex <= mSize) {
 		VisualArrayHistory event;
 		
-		event.type = VisualArray.HISTORY_TYPE.DESEPARATE;
-		event.pos = index;
+		event.type = DESEPARATE;
+		event.pos = leftindex;
 
-		mHistory.push_back(op);
+		mHistory.push_back(event);
 	}
 }
 
@@ -145,14 +151,24 @@ void VisualArray::clearHistory() {
 //template<class T>
 void VisualArray::addSetEvent(int pos, int data) {
 	VisualArrayHistory event;
-	event.type = HISTORY_TYPE.SET;
+	event.type = SET;
 	event.pos = pos;
 	event.data = data;
 	mHistory.push_back(event);
 }
 
+// Temporary print function
+void temp_print(int* array, int length) {
+	std::cout << "\n";
+	for (int i=0; i<length; i++) {
+		std::cout << array[i] << " ";
+	}
+}
+
 //template<class T>
 void VisualArray::render() {
+	/*
+	TODO: FIX
 	if (!mGraphicsReady) {
 		// There is no data in mOriginal!
 		return;
@@ -166,28 +182,36 @@ void VisualArray::render() {
 
 	// Start rendering loop
 	// ...
+	*/
+
+	// Temporary debug
+	while (!mHistory.empty()) {
+		VisualArrayHistory event = nextOperation();
+
+		temp_print(mOriginal, mSize);
+	}
 }
 
 //template<class T>
 VisualArrayHistory VisualArray::nextOperation() {
-	VisualArrayHistory op = mHistory.pop_front(); 
+	VisualArrayHistory op = mHistory.front(); 
+	mHistory.pop_front();
 	
-	if (op[0] == HISTORY_TYPE.SET) {
+	if (op.type == SET) {
 		if (!mHistory.empty()) {
-			VisualArrayHistory opb = mHistory.pop_front();
+			VisualArrayHistory opb = mHistory.front();
 
 			// Check if swap
-			if (opb.event == HISTORY_TYPE.SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {
+			if (opb.type == SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {
 				mOriginal[op.pos] = op.data;
 				mOriginal[opb.pos] = opb.data;
 				
-				op.event = HISTORY_TYPE.SWAP;
-				op.data = opb.pos;
+				op.type = SWAP;
+				op.pos2 = opb.pos;
+
+				mHistory.pop_front();
 
 				return op;
-			}
-			else {
-				mHistory.push_front(opb);
 			}
 		}
 
@@ -204,6 +228,7 @@ void VisualArray::renderNext() {
 	for (it = mLastHighlights.begin(); it != mLastHighlights.end(); ++it) {
 		// Set rectangle to default color
 	}
+	mLastHighlights.clear();
 
 	if (!mHistory.empty()) {
 		VisualArrayHistory op = nextOperation();
