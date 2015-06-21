@@ -10,65 +10,131 @@
 
  #include "visualarray.h"
  
-//template<class T>
+//template<typename T>
 VisualArrayData::VisualArrayData() {
 	parent = NULL;
 }
 
-//template<class T>
+//template<typename T>
 VisualArrayData::VisualArrayData(int _pos, VisualArray* _parent) {
 	pos = _pos;
 	parent = _parent;
 }
 
-//template<class T>
-/*VisualArrayData::operator int() {
-	// not sure how to do this
-	
-	// how to report changes:
-	//parent->addSetEvent(this->pos, this->data);
+//template<typename T>
+VisualArrayData::operator int() {
+	return this->data; 
+}
+
+//template<typename T>
+VisualArrayData& VisualArrayData::operator=(const int& other) {
+	data = other;
+	parent->addSetEvent(this->pos, this->data);
+
+	return *this;
+}
+
+/*VisualArrayData& VisualArrayData::operator=(const VisualArrayData& other) {
+	data = other;
+	parent->addSetEvent(this->pos, this->data);
+
+	return *this;
 }*/
 
-// many operators on VisualArrayData missing
+VisualArrayData& VisualArrayData::operator += (VisualArrayData& right) {
+	this->data += right;
+	return *this;
+}
 
-//template<class T>
+VisualArrayData& VisualArrayData::operator -= (VisualArrayData& right) {
+	this->data -= right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator *= (VisualArrayData& right) {
+	this->data = this->data * right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator /= (VisualArrayData& right) {
+	this->data = this->data / right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator += (int right) {
+	this->data += right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator -= (int right) {
+	this->data -= right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator *= (int right) {
+	this->data *= right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator /= (int right) {
+	this->data /= right;
+	return *this;
+}
+
+VisualArrayData& VisualArrayData::operator++() {
+	++data;
+	return *this;
+}
+
+VisualArrayData VisualArrayData::operator++(int unused) {
+	VisualArrayData result = *this;
+	++data;
+	return result;
+}
+
+VisualArrayData& VisualArrayData::operator--() {
+	--data;
+	return *this;
+}
+
+VisualArrayData VisualArrayData::operator--(int unused) {
+	VisualArrayData result = *this;
+	--data;
+	return result;
+}
+
+//template<typename T>
 VisualArray::VisualArray(int size) {
 	mGraphicsReady = false;
 
 	if (size>0) {
-		mData = new int[size];
-		mOriginal = new int[size];
-		//mData = new VisualArrayData[size];
-		//mOriginal = new VisualArrayData[size];
+		//mData = new int[size];
+		//mOriginal = new int[size];
+		mData = new VisualArrayData[size];
+		mOriginal = new VisualArrayData[size];
 		mSize = size;
 		
-		/*for (int i=0; i<size; i++) {
+		for (int i=0; i<size; i++) {
 			mData[i] = VisualArrayData(i, this);
 			mOriginal[i] = VisualArrayData(i, this);
-		}*/
+		}
 	}
 }
 
 //TODO: Allow to init with existing array and {...} as in C++11
 
-//template<class T>
+//template<typename T>
 VisualArray::~VisualArray() {
 	delete[] mData;
 	delete[] mOriginal;
 }
 
-//template<class T>
-int VisualArray::operator[](int i) const {
-	return mData[i];
-}
-
-//template<class T>
-int& VisualArray::operator [](const int i) {
-	// Note: History is tracked from the VisualArrayData class
+//template<typename T>
+VisualArrayData& VisualArray::operator [](const int i) {
 	return (mData[i]);
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::gfxHighlight(int index, Color color) {
 	if (index >= 0 && index < mSize) {
 		VisualArrayHistory event;
@@ -81,7 +147,7 @@ void VisualArray::gfxHighlight(int index, Color color) {
 	}
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::gfxColor(int index, Color color) {
 	if (index >= 0 && index < mSize) {
 		VisualArrayHistory event;
@@ -94,7 +160,7 @@ void VisualArray::gfxColor(int index, Color color) {
 	}
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::gfxDecolor(int index) {
 	if (index >= 0 && index < mSize) {
 		VisualArrayHistory event;
@@ -106,7 +172,7 @@ void VisualArray::gfxDecolor(int index) {
 	}
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::gfxSeparate(int leftindex, float size, Color color) {
 	if (leftindex >= -1 && leftindex <= mSize) {
 		VisualArrayHistory event;
@@ -120,7 +186,7 @@ void VisualArray::gfxSeparate(int leftindex, float size, Color color) {
 	}
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::gfxDeseparate(int leftindex) {
 	if (leftindex >= -1 && leftindex <= mSize) {
 		VisualArrayHistory event;
@@ -132,14 +198,14 @@ void VisualArray::gfxDeseparate(int leftindex) {
 	}
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::hideLastOperation() {
 	if (!mHistory.empty()) {
 		mHistory.pop_back();
 	}
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::clearHistory() {
 	mHistory.clear();
 	for (int i=0; i<mSize; i++) {
@@ -148,7 +214,7 @@ void VisualArray::clearHistory() {
 	mGraphicsReady = true;
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::addSetEvent(int pos, int data) {
 	VisualArrayHistory event;
 	event.type = SET;
@@ -158,16 +224,12 @@ void VisualArray::addSetEvent(int pos, int data) {
 }
 
 // Temporary print function
-void temp_print(int* array, int length) {
-	std::cout << "\n";
-	for (int i=0; i<length; i++) {
-		std::cout << array[i] << " ";
-	}
+void temp_print(VisualArrayData* array, int length) {
+	
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::render() {
-	/*
 	TODO: FIX
 	if (!mGraphicsReady) {
 		// There is no data in mOriginal!
@@ -182,17 +244,29 @@ void VisualArray::render() {
 
 	// Start rendering loop
 	// ...
-	*/
+
+
+	// ------------------------------------------
 
 	// Temporary debug
+	std::cout << "\n";
+	for (int i=0; i<mSize; i++) {
+		std::cout << mOriginal[i] << " ";
+	}
+
 	while (!mHistory.empty()) {
 		VisualArrayHistory event = nextOperation();
 
-		temp_print(mOriginal, mSize);
+		std::cout << "\n";
+		for (int i=0; i<mSize; i++) {
+			std::cout << mOriginal[i] << " ";
+		}
 	}
+
+	std::cout << "\n";
 }
 
-//template<class T>
+//template<typename T>
 VisualArrayHistory VisualArray::nextOperation() {
 	VisualArrayHistory op = mHistory.front(); 
 	mHistory.pop_front();
@@ -222,7 +296,7 @@ VisualArrayHistory VisualArray::nextOperation() {
 	return op;
 }
 
-//template<class T>
+//template<typename T>
 void VisualArray::renderNext() {
 	std::vector<int>::iterator it; 
 	for (it = mLastHighlights.begin(); it != mLastHighlights.end(); ++it) {

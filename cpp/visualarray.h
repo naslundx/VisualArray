@@ -17,18 +17,33 @@ class VisualArrayData {
 public:
 	VisualArrayData();
 	VisualArrayData(int _pos, VisualArray* _parent);
-	//operator int();
+	operator int();
+
+	VisualArrayData& operator = (const int& other);
+	//VisualArrayData& operator = (const VisualArrayData& other);
 	
-	// usual arithmetical operations
-	// comparator operations between itself and int
-	// add any extra friend functions between this class and int
+	VisualArrayData& operator += (VisualArrayData& right);
+	VisualArrayData& operator -= (VisualArrayData& right);
+	VisualArrayData& operator *= (VisualArrayData& right);
+	VisualArrayData& operator /= (VisualArrayData& right);
+	
+	VisualArrayData& operator += (int right);
+	VisualArrayData& operator -= (int right);
+	VisualArrayData& operator *= (int right);
+	VisualArrayData& operator /= (int right);
+
+	VisualArrayData& operator++(); 
+	VisualArrayData operator++(int unused);
+	VisualArrayData& operator--();
+	VisualArrayData operator--(int unused);
+
 private:
 	int data;
 	int pos;
 	VisualArray* parent;
 };
 
-//template<class T>
+//template<typename T>
 struct VisualArrayHistory {
 	HISTORY_TYPE type;
 	int pos, pos2;
@@ -37,16 +52,14 @@ struct VisualArrayHistory {
 	Color color;
 };
 
-//template<class T>
+//template<typename T>
 class VisualArray {
 public:
 	VisualArray(int size);
 	~VisualArray();
 
-	//VisualArrayData operator [](int i) const;
-	//VisualArrayData& operator [](const int i);
-	int operator [](int i) const;
-	int& operator [](const int i);
+	VisualArrayData& operator [](const int i);
+	//int& operator [](const int i);
 
 	void addSetEvent(int pos, int data);
 	void gfxHighlight(int index, Color);
@@ -64,9 +77,9 @@ private:
 
 	bool mGraphicsReady;
 	int mSize;
-	int *mData, *mOriginal;
-	//VisualArrayData *mData;
-	//VisualArrayData *mOriginal;
+	//int *mData, *mOriginal;
+	VisualArrayData *mData;
+	VisualArrayData *mOriginal;
 	std::deque< VisualArrayHistory > mHistory;
 	std::vector<int> mRectangles;
 	std::vector<int> mLastHighlights;
