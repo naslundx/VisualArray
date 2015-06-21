@@ -10,7 +10,7 @@ enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE }
 template<typename T> class VisualArrayData;
 struct Color { int i; }; // Just temporary
 
-//template<typename T>
+template<typename T>
 struct VisualArrayHistory {
 	HISTORY_TYPE type;
 	int pos, pos2;
@@ -41,14 +41,14 @@ public:
 	void render();
 
 private:
-	VisualArrayHistory nextOperation();
+	VisualArrayHistory<int> nextOperation();
 	void renderNext();
 
 	bool mGraphicsReady;
 	int mSize;
 	VisualArrayData<int> *mData;
 	int *mOriginal;
-	std::deque< VisualArrayHistory > mHistory;
+	std::deque< VisualArrayHistory<int> > mHistory;
 	std::vector<int> mRectangles;
 	std::vector<int> mLastHighlights;
 
@@ -90,21 +90,25 @@ public:
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator -= (VisualArrayData<T>& right) {
 		this->data -= right;
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator *= (VisualArrayData<T>& right) {
 		this->data *= right;
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator /= (VisualArrayData<T>& right) {
 		this->data /= right;
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator %= (VisualArrayData<T>& right) {
 		this->data %= right;
 		reportChange();
@@ -116,21 +120,25 @@ public:
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator -= (T right) {
 		this->data -= right;
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator *= (T right) {
 		this->data *= right;
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator /= (T right) {
 		this->data /= right;
 		reportChange();
 		return *this;
 	}
+
 	VisualArrayData<T>& operator %= (T right) {
 		this->data %= right;
 		reportChange();

@@ -11,7 +11,7 @@ template<typename T> VisualArrayData<T>::VisualArrayData() {
 }
 
 template<typename T> VisualArrayData<T>::VisualArrayData(int pos, VisualArray* parent) {
-	this->pos = pos;
+	this->pos = pos; 
 	this->parent = parent;
 }
 
@@ -46,7 +46,7 @@ VisualArrayData<int>& VisualArray::operator [](const int i) {
 //template<typename T>
 void VisualArray::gfxHighlight(int index, Color color) {
 	if (index >= 0 && index < mSize) {
-		VisualArrayHistory event;
+		VisualArrayHistory<int> event;
 		
 		event.type = HIGHLIGHT;
 		event.pos = index;
@@ -59,7 +59,7 @@ void VisualArray::gfxHighlight(int index, Color color) {
 //template<typename T>
 void VisualArray::gfxColor(int index, Color color) {
 	if (index >= 0 && index < mSize) {
-		VisualArrayHistory event;
+		VisualArrayHistory<int> event;
 		
 		event.type = COLOR;
 		event.pos = index;
@@ -72,7 +72,7 @@ void VisualArray::gfxColor(int index, Color color) {
 //template<typename T>
 void VisualArray::gfxDecolor(int index) {
 	if (index >= 0 && index < mSize) {
-		VisualArrayHistory event;
+		VisualArrayHistory<int> event;
 		
 		event.type = DECOLOR;
 		event.pos = index;
@@ -84,7 +84,7 @@ void VisualArray::gfxDecolor(int index) {
 //template<typename T>
 void VisualArray::gfxSeparate(int leftindex, float size, Color color) {
 	if (leftindex >= -1 && leftindex <= mSize) {
-		VisualArrayHistory event;
+		VisualArrayHistory<int> event;
 		
 		event.type = SEPARATE;
 		event.pos = leftindex;
@@ -98,7 +98,7 @@ void VisualArray::gfxSeparate(int leftindex, float size, Color color) {
 //template<typename T>
 void VisualArray::gfxDeseparate(int leftindex) {
 	if (leftindex >= -1 && leftindex <= mSize) {
-		VisualArrayHistory event;
+		VisualArrayHistory<int> event;
 		
 		event.type = DESEPARATE;
 		event.pos = leftindex;
@@ -125,7 +125,7 @@ void VisualArray::clearHistory() {
 
 //template<typename T>
 void VisualArray::addSetEvent(int pos, int data) {
-	VisualArrayHistory event;
+	VisualArrayHistory<int> event;
 	event.type = SET;
 	event.pos = pos;
 	event.data = data;
@@ -159,7 +159,7 @@ void VisualArray::render() {
 	}
 
 	while (!mHistory.empty()) {
-		VisualArrayHistory event = nextOperation();
+		VisualArrayHistory<int> event = nextOperation();
 
 		if (event.type == SET) {
 			std::cout << "\n\tSet index=" << event.pos << " to " << event.data;
@@ -178,13 +178,13 @@ void VisualArray::render() {
 }
 
 //template<typename T>
-VisualArrayHistory VisualArray::nextOperation() {
-	VisualArrayHistory op = mHistory.front(); 
+VisualArrayHistory<int> VisualArray::nextOperation() {
+	VisualArrayHistory<int> op = mHistory.front(); 
 	mHistory.pop_front();
 	
 	if (op.type == SET) {
 		if (!mHistory.empty()) {
-			VisualArrayHistory opb = mHistory.front();
+			VisualArrayHistory<int> opb = mHistory.front();
 
 			// Check if swap
 			if (opb.type == SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {
@@ -217,7 +217,7 @@ void VisualArray::renderNext() {
 	mLastHighlights.clear();
 
 	if (!mHistory.empty()) {
-		VisualArrayHistory op = nextOperation();
+		VisualArrayHistory<int> op = nextOperation();
 
 		if (op.type == SWAP) {
 			//TODO: Render swapping between op.pos and op.pos2
