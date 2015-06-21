@@ -13,12 +13,11 @@ int main() {
 
 	array.clearHistory();
 
-	int a = -array[9];
+	float a = -array[9];
 	int b = -array[8];
 	array[9] = -b;
 	array[8] = -a;
-
-	std::cout << array[7];
+	
 	//array[9] = 100;
 
 	/*array[0] += -array[0];

@@ -6,128 +6,13 @@
 
  #include "visualarray.h"
  
-//template<typename T>
-VisualArrayData::VisualArrayData() {
+template<typename T> VisualArrayData<T>::VisualArrayData() {
 	parent = NULL;
 }
 
-//template<typename T>
-VisualArrayData::VisualArrayData(int pos, VisualArray* parent) {
+template<typename T> VisualArrayData<T>::VisualArrayData(int pos, VisualArray* parent) {
 	this->pos = pos;
 	this->parent = parent;
-}
-
-void VisualArrayData::reportChange() {
-	std::cout << "reporting to " << parent << "\n";
-	if (parent != NULL) {
-		parent->addSetEvent(this->pos, this->data);
-	}	
-}
-
-//template<typename T>
-VisualArrayData::operator int() {
-	return this->data; 
-}
-
-//template<typename T>
-VisualArrayData& VisualArrayData::operator = (const int& other) {
-	data = other;
-	std::cout << "\n\t\tsetting int data=" << data;
-	reportChange();
-	return *this;
-}
-/*
-VisualArrayData& VisualArrayData::operator = (VisualArrayData& other) {
-	data = other.get();
-	std::cout << "\n\t\tsetting vad data=" << data;
-	reportChange();
-	return *this;
-}
-*/
-VisualArrayData& VisualArrayData::operator += (VisualArrayData& right) {
-	this->data += right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator -= (VisualArrayData& right) {
-	this->data -= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator *= (VisualArrayData& right) {
-	this->data *= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator /= (VisualArrayData& right) {
-	this->data /= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator %= (VisualArrayData& right) {
-	this->data %= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator += (int right) {
-	this->data += right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator -= (int right) {
-	this->data -= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator *= (int right) {
-	this->data *= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator /= (int right) {
-	this->data /= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator %= (int right) {
-	this->data %= right;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData& VisualArrayData::operator++() {
-	++data;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData VisualArrayData::operator++(int unused) {
-	VisualArrayData result = *this;
-	++data;
-	reportChange();
-	return result;
-}
-
-VisualArrayData& VisualArrayData::operator--() {
-	--data;
-	reportChange();
-	return *this;
-}
-
-VisualArrayData VisualArrayData::operator--(int unused) {
-	VisualArrayData result = *this;
-	--data;
-	reportChange();
-	return result;
 }
 
 //template<typename T>
@@ -137,12 +22,12 @@ VisualArray::VisualArray(int size) {
 	if (size>0) {
 		//mData = new int[size];
 		//mOriginal = new int[size];
-		mData = new VisualArrayData[size];
+		mData = new VisualArrayData<int>[size];
 		mOriginal = new int[size];
 		mSize = size;
 		
 		for (int i=0; i<size; i++) {
-			mData[i] = VisualArrayData(i, this);
+			mData[i] = VisualArrayData<int>(i, this);
 		}
 	}
 }
@@ -154,7 +39,7 @@ VisualArray::~VisualArray() {
 }
 
 //template<typename T>
-VisualArrayData& VisualArray::operator [](const int i) {
+VisualArrayData<int>& VisualArray::operator [](const int i) {
 	return (mData[i]);
 }
 
@@ -247,14 +132,9 @@ void VisualArray::addSetEvent(int pos, int data) {
 	mHistory.push_back(event);
 }
 
-// Temporary print function
-void temp_print(VisualArrayData* array, int length) {
-	
-}
-
 //template<typename T>
 void VisualArray::render() {
-	//TODO: FIX
+	//TODO: FIX GRAPHICS
 	if (!mGraphicsReady) {
 		// There is no data in mOriginal!
 		return;
@@ -331,13 +211,34 @@ VisualArrayHistory VisualArray::nextOperation() {
 void VisualArray::renderNext() {
 	std::vector<int>::iterator it; 
 	for (it = mLastHighlights.begin(); it != mLastHighlights.end(); ++it) {
-		// Set rectangle to default color
+		//TODO: Set rectangle to default color
+
 	}
 	mLastHighlights.clear();
 
 	if (!mHistory.empty()) {
 		VisualArrayHistory op = nextOperation();
 
-		// Render this operation
+		if (op.type == SWAP) {
+			//TODO: Render swapping between op.pos and op.pos2
+		}
+		else if (op.type == SET) {
+			//TODO: Render set op.data to op.pos
+		}
+		else if (op.type == HIGHLIGHT) {
+			//TODO: Render highligh, store in mLastHighlights
+		}
+		else if (op.type == COLOR) {
+			//TODO: Render coloring op.pos
+		}
+		else if (op.type == DECOLOR) {
+			//TODO: Color op.pos to default
+		}
+		else if (op.type == SEPARATE) {
+			//TODO: Separate op.pos and op.pos+1
+		}
+		else if (op.type == DESEPARATE) {
+			//TODO: Merge op.pos and op.pos+1
+		}
 	}
 }
