@@ -12,8 +12,8 @@ int main() {
 
 	array.clearHistory();
 
-	int temp = array[9];
-	array[9] = array[8];
+	int temp = array[3];
+	array[3] = array[8];
 	array[8] = temp;
 	array.gfxSeparate(3, 2.5f, Color(3));
 	

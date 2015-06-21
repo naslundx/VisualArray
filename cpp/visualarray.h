@@ -4,6 +4,7 @@
 #include <vector>
 #include <deque>
 #include <iostream>
+#include <algorithm>
 #include <SFML/Graphics.hpp>
 
 enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE };
@@ -139,54 +140,91 @@ public:
 			return;
 		}
 
+		// Find maximal value
+		//TODO: Update this value (and scale if needed) whenever set occurs
+		T maxvalue = 0;
+		for (int i=0; i<mSize; i++) {
+			if (mOriginal[i] > maxvalue) {
+				maxvalue = mOriginal[i];
+			}
+		}	
+
 		// Init rendering window		
-		sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-	    sf::CircleShape shape(100.f);
-	    shape.setFillColor(sf::Color::Green);
+		float gfxWindowWidth = 200;
+		float gfxWindowHeight = 200;
+		float gfxRectangleWidth = 10;			
+		float gfxLeft = 10;
+		float gfxTop = 10;
+		float gfxRectangleScale = (gfxWindowHeight-gfxTop*2)/maxvalue;
+		sf::RenderWindow window(sf::VideoMode(gfxWindowWidth, gfxWindowHeight), "VisualArray");
+	    
+	    // Create rectangles
+	    for (int i=0; i<mSize; i++) {
+	    	sf::RectangleShape rectangle(sf::Vector2f(gfxRectangleWidth, gfxRectangleScale * (float)mOriginal[i]));
+	    	rectangle.setPosition(gfxLeft + gfxRectangleWidth * i, gfxTop);
+	    	mRectangles.push_back(rectangle);
+	    }
 	    
 	    // Start rendering loop
 	    while (window.isOpen())
 	    {
-	    	//TODO: FIX GRAPHICS
+	    	//TODO: Nothing happens...?
+
+	    	std::vector<int>::iterator it; 
+			for (it = mLastHighlights.begin(); it != mLastHighlights.end(); ++it) {
+				//TODO: Set rectangle to default color
+			}
+			mLastHighlights.clear();
 
 	        sf::Event event;
 	        while (window.pollEvent(event))
 	        {
 	            if (event.type == sf::Event::Closed)
 	                window.close();
+
+	            //TODO: Handle interactivity via a GUI
 	        }
 
+	        // Draw to window
 	        window.clear();
-	        window.draw(shape);
+	        std::vector<sf::RectangleShape>::iterator iter;
+	        for (iter=mRectangles.begin(); iter!=mRectangles.end(); ++iter) {
+	        	window.draw(*iter);
+	    	}
 	        window.display();
+
+	        //TODO: Draw a GUI
+
+	        // Render next event
+	        if (!mHistory.empty()) {
+				VisualArrayHistory<T> op = nextOperation();
+
+				if (op.type == SWAP) {
+					mRectangles[op.pos].setPosition(mRectangles[op.pos].getPosition());
+					mRectangles[op.pos2].setPosition(mRectangles[op.pos2].getPosition());
+
+					iter_swap(mRectangles.begin() + op.pos, mRectangles.begin() + op.pos2);
+				}
+				else if (op.type == SET) {
+					mRectangles[op.pos].setSize(sf::Vector2f(gfxRectangleWidth, gfxRectangleScale * (float)mOriginal[op.pos]))
+				}
+				else if (op.type == HIGHLIGHT) {
+					//TODO: Render highligh, store in mLastHighlights
+				}
+				else if (op.type == COLOR) {
+					//TODO: Render coloring op.pos
+				}
+				else if (op.type == DECOLOR) {
+					//TODO: Color op.pos the default color
+				}
+				else if (op.type == SEPARATE) {
+					//TODO: Separate op.pos and op.pos+1 with a line
+				}
+				else if (op.type == DESEPARATE) {
+					//TODO: Merge op.pos and op.pos+1 - remove the line
+				}
+			}
 	    }
-
-
-		// ------------------------------------------
-
-		// Temporary debug
-		/*std::cout << "\n";
-		for (int i=0; i<mSize; i++) {
-			std::cout << mOriginal[i] << " ";
-		}
-
-		while (!mHistory.empty()) {
-			VisualArrayHistory<int> event = nextOperation();
-
-			if (event.type == SET) {
-				std::cout << "\n\tSet index=" << event.pos << " to " << event.data;
-			}
-			else if (event.type == SWAP) {
-				std::cout << "\n\tSwap index=" << event.pos << " with index=" << event.pos2;
-			}
-
-			std::cout << "\n";
-			for (int i=0; i<mSize; i++) {
-				std::cout << mOriginal[i] << " ";
-			}
-		}
-
-		std::cout << "\n";*/
 	}
 
 private:
@@ -219,47 +257,12 @@ private:
 		return op;
 	}
 
-	void renderNext() {
-		std::vector<int>::iterator it; 
-		for (it = mLastHighlights.begin(); it != mLastHighlights.end(); ++it) {
-			//TODO: Set rectangle to default color
-
-		}
-		mLastHighlights.clear();
-
-		if (!mHistory.empty()) {
-			VisualArrayHistory<T> op = nextOperation();
-
-			if (op.type == SWAP) {
-				//TODO: Render swapping between op.pos and op.pos2
-			}
-			else if (op.type == SET) {
-				//TODO: Render set op.data to op.pos
-			}
-			else if (op.type == HIGHLIGHT) {
-				//TODO: Render highligh, store in mLastHighlights
-			}
-			else if (op.type == COLOR) {
-				//TODO: Render coloring op.pos
-			}
-			else if (op.type == DECOLOR) {
-				//TODO: Color op.pos to default
-			}
-			else if (op.type == SEPARATE) {
-				//TODO: Separate op.pos and op.pos+1
-			}
-			else if (op.type == DESEPARATE) {
-				//TODO: Merge op.pos and op.pos+1
-			}
-		}
-	}
-
 	bool mGraphicsReady;
 	int mSize;
 	VisualArrayData<T> *mData;
 	T *mOriginal;
 	std::deque< VisualArrayHistory<T> > mHistory;
-	std::vector<int> mRectangles;
+	std::vector<sf::RectangleShape> mRectangles;
 	std::vector<int> mLastHighlights;
 
 	Color gfxDefaultColor, gfxDefaultHighlightColor, gfxDefaultSeparatorColor;
