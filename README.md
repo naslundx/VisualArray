@@ -20,7 +20,7 @@ Every implementation should respect the following points. Some of these are just
 Please feel free to help out.
 
 - **Python**: Working. Restart and step back currently not implemented. GUI problems. No animations.
-- **C++**: Not working. Engine not finished and GUI not even started.
-- **C#**: Not working. Engine not finished and GUI not even started.
-- (**Java**: Not started.)
+- **C++**: Partially works. Graphics problems. GUI not implemented.
+- **C#**: Not working. Engine not finished and GUI not implemented.
 - (**Javascript** Not started.)
+- (**Java**: Not started.)
