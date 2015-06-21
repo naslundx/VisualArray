@@ -4,6 +4,7 @@
 #include <vector>
 #include <deque>
 #include <iostream>
+#include <SFML/Graphics.hpp>
 
 enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE };
 
@@ -50,11 +51,13 @@ public:
 	}*/
 
 	void addSetEvent(int pos, T data) {
-		VisualArrayHistory<T> event;
-		event.type = SET;
-		event.pos = pos;
-		event.data = data;
-		mHistory.push_back(event);
+		if (pos >= 0 && pos < mSize) {
+			VisualArrayHistory<T> event;
+			event.type = SET;
+			event.pos = pos;
+			event.data = data;
+			mHistory.push_back(event);
+		}		
 	}
 
 	void gfxHighlight(int index, Color color) {
@@ -136,22 +139,33 @@ public:
 			return;
 		}
 
-		//TODO: FIX GRAPHICS
+		// Init rendering window		
+		sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+	    sf::CircleShape shape(100.f);
+	    shape.setFillColor(sf::Color::Green);
+	    
+	    // Start rendering loop
+	    while (window.isOpen())
+	    {
+	    	//TODO: FIX GRAPHICS
 
-		// Init rendering window, create rectangles
-		mRectangles.clear();
-		mLastHighlights.clear();
+	        sf::Event event;
+	        while (window.pollEvent(event))
+	        {
+	            if (event.type == sf::Event::Closed)
+	                window.close();
+	        }
 
-		// ... 
-
-		// Start rendering loop
-		// ...
+	        window.clear();
+	        window.draw(shape);
+	        window.display();
+	    }
 
 
 		// ------------------------------------------
 
 		// Temporary debug
-		std::cout << "\n";
+		/*std::cout << "\n";
 		for (int i=0; i<mSize; i++) {
 			std::cout << mOriginal[i] << " ";
 		}
@@ -172,7 +186,7 @@ public:
 			}
 		}
 
-		std::cout << "\n";
+		std::cout << "\n";*/
 	}
 
 private:

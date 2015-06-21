@@ -4,7 +4,6 @@
 //TODO: Write a sorting algorithm to use for debugging.
 
 int main() {
-	std::cout << "Creating";
 	VisualArray<int> array(10);
 
 	for (int i=9; i>=0; i--) {
