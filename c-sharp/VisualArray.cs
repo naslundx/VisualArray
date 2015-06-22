@@ -1,5 +1,8 @@
 //Note: This code has not been tested or debugged at all
-//Missing graphics and GUI
+//Missing graphics and GUI (use System.Drawable)
+
+// Possibility: Use Observable.ToObservable<TSource>
+// https://msdn.microsoft.com/en-us/library/hh212140(v=vs.103).aspx
 
 public class VisualArray<T>
 {
