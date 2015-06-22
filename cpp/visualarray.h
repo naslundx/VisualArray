@@ -23,6 +23,12 @@ template<typename T> struct VisualArrayHistory {
 template<typename T> class VisualArray {
 public:
 	VisualArray(int size)  {
+		gfxWindowWidth = 200;
+		gfxWindowHeight = 200;
+		gfxRectangleWidth = 10;			
+		gfxLeft = 10;
+		gfxTop = 10;
+
 		mGraphicsReady = false;
 
 		if (size>0) {
@@ -149,81 +155,56 @@ public:
 			}
 		}	
 
-		// Init rendering window		
-		float gfxWindowWidth = 200;
-		float gfxWindowHeight = 200;
-		float gfxRectangleWidth = 10;			
-		float gfxLeft = 10;
-		float gfxTop = 10;
-		float gfxRectangleScale = (gfxWindowHeight-gfxTop*2)/maxvalue;
+		// Init rendering window
+		VisualArrayHistory<T> op;	
+		sf::Event event;	
+		gfxRectangleScale = (gfxWindowHeight-gfxTop*2)/maxvalue;
 		sf::RenderWindow window(sf::VideoMode(gfxWindowWidth, gfxWindowHeight), "VisualArray");
-	    
-	    // Create rectangles
-	    for (int i=0; i<mSize; i++) {
-	    	sf::RectangleShape rectangle(sf::Vector2f(gfxRectangleWidth, gfxRectangleScale * (float)mOriginal[i]));
-	    	rectangle.setPosition(gfxLeft + gfxRectangleWidth * i, gfxTop);
-	    	mRectangles.push_back(rectangle);
-	    }
 	    
 	    // Start rendering loop
 	    while (window.isOpen())
 	    {
 	    	//TODO: Nothing happens...?
-
-	    	std::vector<int>::iterator it; 
-			for (it = mLastHighlights.begin(); it != mLastHighlights.end(); ++it) {
-				//TODO: Set rectangle to default color
-			}
-			mLastHighlights.clear();
-
-	        sf::Event event;
+	        
 	        while (window.pollEvent(event))
 	        {
-	            if (event.type == sf::Event::Closed)
-	                window.close();
+	        	switch (event.type) {
+	        		case sf::Event::Closed:
+	        			window.close();
+	        			break;
 
-	            //TODO: Handle interactivity via a GUI
+	        		case sf::Event::Resized:
+	        			//TODO: Reposition and resize everything
+	        			renderFrame(window, op);
+	        			break;
+
+	        		case sf::Event::KeyPressed:
+	        			switch (event.key.code) {
+	        				case sf::Keyboard::Left:
+	        					//TODO: Step back
+	        					break;
+
+	        				case sf::Keyboard::Right:
+	        					//TODO: Step forward
+	        					break;
+
+	        				case sf::Keyboard::Space:
+	        					//TODO: Toggle play/pause
+	        					break;
+
+	        				case sf::Keyboard::Escape:
+	        					//TODO: Restart from beginning
+	        					break;
+	        			}
+	        			break;
+	        	}	            
 	        }
 
 	        // Draw to window
-	        window.clear();
-	        std::vector<sf::RectangleShape>::iterator iter;
-	        for (iter=mRectangles.begin(); iter!=mRectangles.end(); ++iter) {
-	        	window.draw(*iter);
-	    	}
-	        window.display();
-
-	        //TODO: Draw a GUI
-
-	        // Render next event
 	        if (!mHistory.empty()) {
-				VisualArrayHistory<T> op = nextOperation();
-
-				if (op.type == SWAP) {
-					mRectangles[op.pos].setPosition(mRectangles[op.pos].getPosition());
-					mRectangles[op.pos2].setPosition(mRectangles[op.pos2].getPosition());
-
-					iter_swap(mRectangles.begin() + op.pos, mRectangles.begin() + op.pos2);
-				}
-				else if (op.type == SET) {
-					mRectangles[op.pos].setSize(sf::Vector2f(gfxRectangleWidth, gfxRectangleScale * (float)mOriginal[op.pos]))
-				}
-				else if (op.type == HIGHLIGHT) {
-					//TODO: Render highligh, store in mLastHighlights
-				}
-				else if (op.type == COLOR) {
-					//TODO: Render coloring op.pos
-				}
-				else if (op.type == DECOLOR) {
-					//TODO: Color op.pos the default color
-				}
-				else if (op.type == SEPARATE) {
-					//TODO: Separate op.pos and op.pos+1 with a line
-				}
-				else if (op.type == DESEPARATE) {
-					//TODO: Merge op.pos and op.pos+1 - remove the line
-				}
-			}
+	        	op = nextOperation();
+	        	renderFrame(window, op);
+	        }
 	    }
 	}
 
@@ -257,13 +238,85 @@ private:
 		return op;
 	}
 
+	void renderFrame(sf::RenderWindow& window, VisualArrayHistory<T>& op) {
+		mRectangles.clear();
+
+		// Create rectangles
+	    for (int i=0; i<mSize; i++) {
+	    	sf::RectangleShape rectangle(sf::Vector2f(gfxRectangleWidth, gfxRectangleScale * (float)mOriginal[i]));
+	    	rectangle.setFillColor(sf::Color(255, 255, 255));
+	    	rectangle.setPosition(gfxLeft + gfxRectangleWidth * i, gfxTop);
+	    	mRectangles.push_back(rectangle);
+	    }
+	    
+	    // Handle gfx events
+		if (op.type == COLOR) {
+			mRectangleColors.push_front(std::pair<int, sf::Color>(op.pos, sf::Color(0, 0, 255)));
+		}
+		else if (op.type == DECOLOR) {
+			for (std::deque< std::pair<int, sf::Color> >::iterator it = mRectangleColors.begin(); it != mRectangleColors.end(); ++it) {
+				if (it->first == op.pos) {
+					mRectangleColors.erase(it);
+					break;
+				}
+			}
+		}
+		else if (op.type == SEPARATE) {
+			sf::RectangleShape line(sf::Vector2f(2, gfxWindowHeight));
+			line.setPosition(gfxLeft + gfxRectangleWidth * op.pos, gfxTop-5);
+			mSeparators.push_front(std::pair<int, sf::RectangleShape>(op.pos, line));
+		}
+		else if (op.type == DESEPARATE) {
+			for (std::deque< std::pair<int, sf::RectangleShape> >::iterator it = mSeparators.begin(); it != mSeparators.end(); ++it) {
+				if (it->first == op.pos) {
+					mSeparators.erase(it);
+					break;
+				}
+			}
+		}
+
+		// Use coloring already introduced
+		for (std::deque< std::pair<int, sf::Color> >::iterator it = mRectangleColors.begin(); it != mRectangleColors.end(); ++it) {
+			mRectangles[it->first].setFillColor(it->second);
+		}
+		
+		if (op.type == HIGHLIGHT) {
+			mRectangles[op.pos].setFillColor(sf::Color(0, 255, 0));
+		}
+
+		// Render to buffer
+	    window.clear();
+
+        for (std::vector<sf::RectangleShape>::iterator it=mRectangles.begin(); it!=mRectangles.end(); ++it) {
+        	window.draw(*it);
+    	}
+
+    	for (std::deque< std::pair<int, sf::RectangleShape> >::iterator it=mSeparators.begin(); it!=mSeparators.end(); ++it) {
+        	window.draw(it->second);
+    	}
+
+    	// Draw a GUI
+    	//TODO
+
+    	// Display on screen
+        window.display();
+	}
+
 	bool mGraphicsReady;
 	int mSize;
 	VisualArrayData<T> *mData;
 	T *mOriginal;
 	std::deque< VisualArrayHistory<T> > mHistory;
 	std::vector<sf::RectangleShape> mRectangles;
-	std::vector<int> mLastHighlights;
+	std::deque< std::pair<int, sf::Color> > mRectangleColors;
+	std::deque< std::pair<int, sf::RectangleShape> > mSeparators;
+
+	float gfxWindowWidth;
+	float gfxWindowHeight;
+	float gfxRectangleWidth;			
+	float gfxLeft;
+	float gfxTop;
+	float gfxRectangleScale;
 
 	Color gfxDefaultColor, gfxDefaultHighlightColor, gfxDefaultSeparatorColor;
 	//TODO: Set default colors
