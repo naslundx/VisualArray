@@ -338,10 +338,6 @@ public:
 		this->parent = parent;
 	}
 
-	T get() { 
-		return data; 
-	}
-
 	void reportChange() {
 		if (parent != NULL) {
 			parent->addSetEvent(this->pos, this->data);
