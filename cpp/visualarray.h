@@ -5,13 +5,15 @@
 #include <deque>
 #include <iostream>
 #include <algorithm>
+#include <stack>
 #include <SFML/Graphics.hpp>
 
-enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE };
+enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, SEPARATE, DESEPARATE };
 
 template<typename T> class VisualArrayData;
 struct Color { Color() {i=0;} Color(int j) {i=j;} int i; }; // Just temporary
 
+// Struct for storing events
 template<typename T> struct VisualArrayHistory {
 	HISTORY_TYPE type;
 	int pos, pos2;
@@ -20,6 +22,7 @@ template<typename T> struct VisualArrayHistory {
 	Color color;
 };
 
+// Main VisualArray class
 template<typename T> class VisualArray {
 public:
 	VisualArray(int size)  {
@@ -65,18 +68,6 @@ public:
 			event.data = data;
 			mHistory.push_back(event);
 		}		
-	}
-
-	void gfxHighlight(int index, Color color) {
-		if (index >= 0 && index < mSize) {
-			VisualArrayHistory<T> event;
-			
-			event.type = HIGHLIGHT;
-			event.pos = index;
-			event.color = color;
-
-			mHistory.push_back(event);
-		}
 	}
 
 	void gfxColor(int index, Color color) {
@@ -134,9 +125,14 @@ public:
 
 	void clearHistory() {
 		mHistory.clear();
+		while (!mHistoryPlayed.empty()) {
+			mHistoryPlayed.pop(); // std::stack has no clear() method because... ?
+		}
+
 		for (int i=0; i<mSize; i++) {
 			mOriginal[i] = mData[i];
 		}
+
 		mGraphicsReady = true;
 	}
 
@@ -160,6 +156,7 @@ public:
 		sf::Event event;	
 		gfxRectangleScale = (gfxWindowHeight-gfxTop*2)/maxvalue;
 		sf::RenderWindow window(sf::VideoMode(gfxWindowWidth, gfxWindowHeight), "VisualArray");
+		bool keypress = true;
 	    
 	    // Start rendering loop
 	    while (window.isOpen())
@@ -181,11 +178,17 @@ public:
 	        		case sf::Event::KeyPressed:
 	        			switch (event.key.code) {
 	        				case sf::Keyboard::Left:
-	        					//TODO: Step back
+	        					if (!mHistoryPlayed.empty()) {
+	        						op = prevOperation();
+	        						keypress = true;
+	        					}
 	        					break;
 
 	        				case sf::Keyboard::Right:
-	        					//TODO: Step forward
+	        					if (!mHistory.empty()) {
+	        						op = nextOperation();
+	        						keypress = true;
+	        					}
 	        					break;
 
 	        				case sf::Keyboard::Space:
@@ -193,7 +196,8 @@ public:
 	        					break;
 
 	        				case sf::Keyboard::Escape:
-	        					//TODO: Restart from beginning
+	        					gfxRestart();
+	        					renderFrame(window, op);
 	        					break;
 	        			}
 	        			break;
@@ -201,14 +205,18 @@ public:
 	        }
 
 	        // Draw to window
-	        if (!mHistory.empty()) {
+	        // TODO: Do this through GUI
+	        if (keypress) {
 	        	op = nextOperation();
+	        	executeOperation(op);
 	        	renderFrame(window, op);
+	        	keypress = false;
 	        }
 	    }
 	}
 
 private:
+	// Get the next operation
 	VisualArrayHistory<T> nextOperation() {
 		VisualArrayHistory<T> op = mHistory.front(); 
 		mHistory.pop_front();
@@ -218,26 +226,53 @@ private:
 				VisualArrayHistory<T> opb = mHistory.front();
 
 				// Check if swap
-				if (opb.type == SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {
-					mOriginal[op.pos] = op.data;
-					mOriginal[opb.pos] = opb.data;
-					
+				if (opb.type == SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {			
 					op.type = SWAP;
 					op.pos2 = opb.pos;
 
 					mHistory.pop_front();
-
-					return op;
 				}
 			}
-
-			// If we didn't return already, we should perform set
-			mOriginal[op.pos] = op.data;
 		}
+
+		VisualArrayHistory<T> flip = flipOperation(op);
+		mHistoryPlayed.push(flip);
 
 		return op;
 	}
 
+	// Get previous operation (used for stepping back) - not used yet
+	VisualArrayHistory<T> prevOperation() {
+		VisualArrayHistory<T> op = mHistoryPlayed.top(); 
+		mHistoryPlayed.pop();
+
+		VisualArrayHistory<T> flip = flipOperation(op);
+		mHistory.push_front(flip);
+
+		return op;
+	}
+
+	// Step back to the beginning
+	void gfxRestart() {
+		while (!mHistoryPlayed.empty()) {
+			VisualArrayHistory<T> op = prevOperation();
+			executeOperation(op);
+		}
+	}
+
+	// Execute a SET and SWAP operation
+	void executeOperation(VisualArrayHistory<T> &op) {
+		if (op.type == SET) {
+			mOriginal[op.pos] = op.data;
+		}
+		else if (op.type == SWAP) {
+			T temp = mOriginal[op.pos];
+			mOriginal[op.pos] = mOriginal[op.pos2];
+			mOriginal[op.pos2] = temp;
+		}
+	}
+
+	// Render the current frame, latest operation was op
 	void renderFrame(sf::RenderWindow& window, VisualArrayHistory<T>& op) {
 		mRectangles.clear();
 
@@ -279,10 +314,8 @@ private:
 		for (std::deque< std::pair<int, sf::Color> >::iterator it = mRectangleColors.begin(); it != mRectangleColors.end(); ++it) {
 			mRectangles[it->first].setFillColor(it->second);
 		}
-		
-		if (op.type == HIGHLIGHT) {
-			mRectangles[op.pos].setFillColor(sf::Color(0, 255, 0));
-		}
+
+		//TODO: Color the most recent rectangles that were swapped or set
 
 		// Render to buffer
 	    window.clear();
@@ -302,15 +335,42 @@ private:
         window.display();
 	}
 
+	// Use this function to flip the operation, and then put on stack so that we can play back
+	VisualArrayHistory<T> flipOperation(VisualArrayHistory<T> op) {
+		VisualArrayHistory<T> flip = op;
+
+		if (flip.type == COLOR) {
+			flip.type = DECOLOR;
+		}
+		else if (flip.type == DECOLOR) {
+			flip.type = COLOR;
+
+			//TODO: Find current color of this rectangle and store
+		}
+		else if (flip.type == SEPARATE) {
+			flip.type = DESEPARATE;
+		}
+		else if (flip.type == DESEPARATE) {
+			flip.type = SEPARATE;
+
+			//TODO: Find latest separator color and width at this position
+		}
+
+		return flip;
+	}
+
+	// Private data
 	bool mGraphicsReady;
 	int mSize;
 	VisualArrayData<T> *mData;
 	T *mOriginal;
 	std::deque< VisualArrayHistory<T> > mHistory;
+	std::stack< VisualArrayHistory<T> > mHistoryPlayed;
 	std::vector<sf::RectangleShape> mRectangles;
 	std::deque< std::pair<int, sf::Color> > mRectangleColors;
 	std::deque< std::pair<int, sf::RectangleShape> > mSeparators;
 
+	// Data for graphics rendering
 	float gfxWindowWidth;
 	float gfxWindowHeight;
 	float gfxRectangleWidth;			
@@ -318,10 +378,13 @@ private:
 	float gfxTop;
 	float gfxRectangleScale;
 
-	Color gfxDefaultColor, gfxDefaultHighlightColor, gfxDefaultSeparatorColor;
+	Color gfxDefaultNoColor, gfxDefaultColor, gfxDefaultSeparatorColor;
 	//TODO: Set default colors
 };
 
+// This class imitates the elements of the VisualArray
+// Issue: You cannot do int& reference = VisualArrayData<int> other;
+// Can this be fixed somehow?
 template<typename T> class VisualArrayData {
 private:
 	T data;
@@ -355,7 +418,7 @@ public:
 	}
 
 	VisualArrayData<T>& operator = (VisualArrayData<T>& other) {
-		this->data = other.get();
+		this->data = other;
 		reportChange();
 		return *this;
 	}
