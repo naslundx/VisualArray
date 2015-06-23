@@ -19,7 +19,7 @@ Every implementation should respect the following points. Some of these are just
 ## Status
 Please feel free to help out.
 
-- **Python**: Working. Restart and step back currently not implemented. GUI problems. No animations. Graphics in Tkinter.
+- **Python**: Working and feature-complete. GUI problems. No animations. Graphics in Tkinter.
 - **C++**: Partially works. Graphics problems. GUI not implemented. Graphics in SFML.
 - **C#**: Not working. Engine not finished and GUI not implemented. Graphics in SFML.
 - (**Javascript** Not started.)
