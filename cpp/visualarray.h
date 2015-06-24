@@ -136,6 +136,7 @@ public:
 		mGraphicsReady = true;
 	}
 
+	// This is very the visualization happens
 	void render() {
 		if (!mGraphicsReady) {
 			// There is no data in mOriginal!
@@ -510,7 +511,7 @@ public:
 	}
 
 	//TODO: Add bitwise operators & | ^ &= |= ^= << >> <<= >>= ~
-	//TODO: Add cout << and cin >> overloads???
+	//TODO: Add cout << and cin >> overloads (if needed?)
 };
 
 #endif

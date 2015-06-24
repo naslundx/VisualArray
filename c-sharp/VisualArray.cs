@@ -20,15 +20,48 @@ public class VisualArray<T>
 	private T[] mData, mOriginal;
     
 	List< VisualArrayHistory<T> > mHistory;
+	List< VisualArrayHistory<T> > mHistoryPlayed;
 
-	//TODO: Add whatever we need for graphics
-	private Color gfxDefaultColor, gfxDefaultHighlightColor, gfxDefaultSeparatorColor;
-	//List<int> mRectangles;
-	//List<int> mLastHighlights;
+	private Color gfxDefaultNoColor, gfxDefaultColor, gfxDefaultSeparatorColor;
 
-	//TODO: get/set default colors
-	  
-	//TODO: add whatever operators that are standard on C# arrays
+	public Color GfxDefaultNoColor
+	{
+		get
+		{
+			return gfxDefaultNoColor
+		}
+		set
+		{
+			gfxDefaultNoColor = value;
+		}
+	}
+
+	public Color GfxDefaultColor
+	{
+		get
+		{
+			return gfxDefaultColor
+		}
+		set
+		{
+			gfxDefaultColor = value;
+		}
+	}
+
+	public Color GfxDefaultSeparatorColor
+	{
+		get
+		{
+			return gfxDefaultSeparatorColor
+		}
+		set
+		{
+			gfxDefaultSeparatorColor = value;
+		}
+	}
+ 
+	//TODO: implement "all" operators that are standard on C# arrays
+	// https://msdn.microsoft.com/en-us/library/system.array_methods(v=vs.110).aspx
 
 	public VisualArray(int size)
 	{
@@ -77,19 +110,7 @@ public class VisualArray<T>
     { 
     	return GetEnumerator();
     }
-    
-	public void gfxHighlight(int index, Color color)
-	{
-		if (index >= 0 && index < mData.Length)
-		{
-			VisualArrayHistory _event;
-			_event.type = HISTORY_TYPE.HIGHLIGHT;
-			_event.pos = index;
-			_event.color = color;
-			mHistory.Add(_event);
-		}
-	}
-	  
+      
 	public void gfxColor(int index, Color color)
 	{
 		if (index >= 0 && index < mData.Length)
@@ -148,6 +169,7 @@ public class VisualArray<T>
 	public void clearHistory()
 	{
 		mHistory.Clear();
+		mHistoryPlayed.Clear();
 		Array.Copy(mData, 0, mHistory, 0, mData.Length)
 	}
 
@@ -157,11 +179,13 @@ public class VisualArray<T>
 
 		//TODO: Init the GUI
 
-		//TODO: Start rendering loop (use renderNext)
+		//TODO: Start rendering loop (use renderFrame)
 	}
 
-	private VisualArrayHistory nextOperation()
+	private VisualArrayHistory<T> nextOperation()
 	{
+		//TODO: Flip this operation and add to mHistoryPlayed
+
 		if (mHistory.Length > 0)
 		{
 			VisualArrayHistory op = mHistory[mHistory.Count - 1];
@@ -196,14 +220,34 @@ public class VisualArray<T>
 			return null;
 		}
 	}
+
+	private VisualArrayHistory<T> prevOperation() 
+	{
+		//TODO
+	}
+
+	private void executeOperation(VisualArrayHistory<T> op) 
+	{
+		//TODO Execute operation if it is a SET or SWAP operation
+	}
+
+	private VisualArrayHistory<T> flipOperation(VisualArrayHistory<T> op) {
+		VisualArrayHistory<T> flip;
+
+		//TODO: Flip if SET,COLOR,DECOLOR,SEPARATE,DESEPARATE
+
+		return flip;
+	}
 	  
-	private void renderNext()
+	private void renderFrame()
 	{
 		if (mHistory.Count > 0)
 		{
 			VisualArrayHistory op = nextOperation();
 
 			//TODO: Render the changes that are stored in op
+
+			//TODO: A lot of things, use System.Drawable
 		}
 	}
 }
