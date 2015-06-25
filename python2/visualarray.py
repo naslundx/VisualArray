@@ -156,13 +156,31 @@ class VisualArray:
 	def gui_stepprev(self):
 		self.render_prev()
 
+	# A subclass of Canvas for dealing with resizing of windows
+	class ResizingCanvas(Tkinter.Canvas):
+		def __init__(self, parent, **kwargs):
+			Tkinter.Canvas.__init__(self, parent, **kwargs)
+			self.height = self.winfo_reqheight()
+			self.width = self.winfo_reqwidth()
+			self.bind("<Configure>", self.on_resize)
+
+		def on_resize(self, event):
+			# determine the ratio of old width/height to new width/height
+			wscale = float(event.width) / self.width
+			hscale = float(event.height) / self.height
+			self.width = event.width
+			self.height = event.height
+			#resize the canvas
+			self.config(width = self.width, height = self.height)
+			# rescale all the objects tagged with the "all" tag
+			self.scale("all", 0, 0, wscale, hscale)
 
 	def render(self):
 		# Set gfx constants
 		self.gfx_top = 0
 		self.gfx_left = 0	
-		self.gfx_windowmargin = 10	
-		self.gui_space = 30
+		self.gfx_windowmargin = 10 
+		self.gui_space = 30 
 		self.gfx_scale = (self.gfx_bottom - self.gfx_top - self.gfx_windowmargin) / max(self.data)
 		self.gfx_rectwidth = (self.gfx_right - self.gfx_left - self.gfx_windowmargin) / len(self.data)		
 
@@ -170,7 +188,14 @@ class VisualArray:
 		self.root = Tkinter.Tk()
 		self.root.title("VisualArray")
 		self.root.geometry(str(self.gfx_bottom+self.gfx_windowmargin)+"x"+str(self.gfx_right+self.gfx_windowmargin+self.gui_space))
-		self.canvas = Tkinter.Canvas(self.root)
+		#self.frame = Tkinter.Frame(self.root) # DK
+		#self.frame.pack(fill = Tkinter.BOTH) # DK
+		#self.frame.pack(fill = Tkinter.BOTH, expand = Tkinter.YES) # DK
+		#self.canvas = Tkinter.Canvas(self.root) # DK
+		self.canvas = self.ResizingCanvas(self.root) # DK
+		#self.canvas = self.ResizingCanvas(self.frame) # DK
+		#self.canvas.pack(fill = Tkinter.BOTH) # DK
+		#self.canvas.pack(fill = Tkinter.BOTH, expand = Tkinter.YES) # DK
 		
 		# Create rectangles
 		self.gfx_rectangles = []
@@ -187,18 +212,24 @@ class VisualArray:
 		self.gui_restart = Tkinter.Button(self.canvas,text='Restart', command=self.gui_restart)
 		self.gui_prev = Tkinter.Button(self.canvas,text='<', command=self.gui_stepprev)
 		self.gui_next = Tkinter.Button(self.canvas,text='>', command=self.gui_stepnext)
-		self.canvas.create_window(30, self.gfx_bottom+20, window=self.gui_play)
-		self.canvas.create_window(90, self.gfx_bottom+20, window=self.gui_restart)
-		self.canvas.create_window(145, self.gfx_bottom+20, window=self.gui_prev)
-		self.canvas.create_window(183, self.gfx_bottom+20, window=self.gui_next)
+		#self.canvas.create_window(30, self.gfx_bottom+20, window=self.gui_play)
+		self.canvas.create_window(30, self.gfx_bottom+20, window=self.gui_play, tags = "all")
+		#self.canvas.create_window(90, self.gfx_bottom+20, window=self.gui_restart)
+		self.canvas.create_window(90, self.gfx_bottom+20, window=self.gui_restart, tags = "all")
+		#self.canvas.create_window(145, self.gfx_bottom+20, window=self.gui_prev)
+		self.canvas.create_window(145, self.gfx_bottom+20, window=self.gui_prev, tags = "all")
+		#self.canvas.create_window(183, self.gfx_bottom+20, window=self.gui_next)
+		self.canvas.create_window(183, self.gfx_bottom+20, window=self.gui_next, tags = "all")
 
-		self.canvas.pack(fill=Tkinter.BOTH)
+		#self.canvas.pack(fill=Tkinter.BOTH) # DK
+		self.canvas.pack(fill = Tkinter.BOTH, expand = Tkinter.YES) # DK
 
 		# Start playback
 		if self.gfx_autostart:
 			self.canvas.after(self.gfx_initwait, self.render_next)
 			self.canvas.itemconfig(self.gui_play, text='Pause')
 
+		self.canvas.addtag_all("all") # DK
 		self.root.mainloop()  
 
 
