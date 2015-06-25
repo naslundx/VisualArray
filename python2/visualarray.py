@@ -36,7 +36,7 @@ class VisualArray:
 
 	def __setitem__(self, key, value):
 		self.data[key] = value
-		self.action_queue.append((key,value))
+		self.action_queue.append([key,value])
 
 
 	def __str__(self):
@@ -89,11 +89,8 @@ class VisualArray:
 					nelem = self.action_queue[0]
 					if isinstance(nelem[0], int):
 						if top[1] == self.original[nelem[0]] and nelem[1] == self.original[top[0]]:
-							self.original[top[0]], self.original[nelem[0]] = top[1], nelem[1]
 							self.action_queue.pop(0)
 							return ['swap', top[0], nelem[0]]
-
-				self.original[top[0]] = top[1]
 
 			return top
 		else:
@@ -156,6 +153,7 @@ class VisualArray:
 	def gui_stepprev(self):
 		self.render_prev()
 
+
 	# A subclass of Canvas for dealing with resizing of windows
 	class ResizingCanvas(Tkinter.Canvas):
 		def __init__(self, parent, **kwargs):
@@ -174,6 +172,7 @@ class VisualArray:
 			self.config(width = self.width, height = self.height)
 			# rescale all the objects tagged with the "all" tag
 			self.scale("all", 0, 0, wscale, hscale)
+
 
 	def render(self):
 		# Set gfx constants
@@ -273,6 +272,7 @@ class VisualArray:
 
 	def execute_operation(self, op):
 		if op[0] =='swap':
+			self.original[op[1]], self.original[op[2]] = self.original[op[2]], self.original[op[1]]
 			a = self.gfx_rectangles[op[1]]
 			b = self.gfx_rectangles[op[2]]
 			acoords = self.canvas.coords(a)
@@ -308,6 +308,7 @@ class VisualArray:
 				i -= 1
 
 		else:
+			self.original[op[0]] = op[1]
 			item = self.gfx_rectangles[op[0]]
 			value = self.data[op[0]]
 			coords = self.canvas.coords(item)
@@ -319,30 +320,38 @@ class VisualArray:
 	def flipped_operation(self, op):
 		flip = op
 
-		if op and not isinstance(op[0], int):
-			if op[0]=='separate':
-				flip = ['deseparate', op[1]]
+		if op:
+			if not isinstance(op[0], int):
+				if op[0]=='separate':
+					flip = ['deseparate', op[1]]
 
-			elif op[0]=='deseparate':
-				flip = ['separate', op[1]]
-				i = len(self.gfx_separators)-1
-				while i>=0:
-					item = (self.gfx_separators[i])
-					if item[0] == op[1]:
-						color = self.canvas.itemcget(item[1], 'fill')
-						width = self.canvas.itemcget(item[1], 'width')
-						flip.append(color)
-						flip.append(width)
-						break
-					i -= 1
+				elif op[0]=='deseparate':
+					flip = ['separate', op[1]]
+					i = len(self.gfx_separators)-1
+					while i>=0:
+						item = (self.gfx_separators[i])
+						if item[0] == op[1]:
+							color = self.canvas.itemcget(item[1], 'fill')
+							width = self.canvas.itemcget(item[1], 'width')
+							flip.append(color)
+							flip.append(width)
+							break
+						i -= 1
 
-			elif op[0]=='color':
-				flip = ['decolor', op[1]]
+				elif op[0]=='color':
+					flip = ['decolor', op[1]]
 
-			elif op[0]=='decolor':
-				flip = ['color', op[1]]
-				item = self.gfx_rectangles[op[1]]
-				color = self.canvas.itemcget(item, 'fill')
-				flip.append(color)
+				elif op[0]=='decolor':
+					flip = ['color', op[1]]
+					item = self.gfx_rectangles[op[1]]
+					color = self.canvas.itemcget(item, 'fill')
+					flip.append(color)
+
+				elif op[0]=='swap':
+					# Do nothing
+					None
+
+			else:
+				flip[1] = self.original[flip[0]]
 		
 		return flip

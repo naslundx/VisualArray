@@ -4,31 +4,35 @@
 // Possibility: Use Observable.ToObservable<TSource>
 // https://msdn.microsoft.com/en-us/library/hh212140(v=vs.103).aspx
 
-public class VisualArray<T>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public class VisualArray<T> where T : IComparable
 {
-	public class VisualArrayHistory<T>
+	public class VisualArrayHistory<T> where T : IComparable
 	{
-		public VisualArray.HISTORY_TYPE type;
+		public VisualArray<T>.HISTORY_TYPE type;
 		public int pos, pos2;
 		public T data;
 		public float width;
-		public Color color;
+		//public Color color;
 	}
     
-	private static enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE };
+	public enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, HIGHLIGHT, SEPARATE, DESEPARATE };
     
 	private T[] mData, mOriginal;
     
 	List< VisualArrayHistory<T> > mHistory;
 	List< VisualArrayHistory<T> > mHistoryPlayed;
 
-	private Color gfxDefaultNoColor, gfxDefaultColor, gfxDefaultSeparatorColor;
+	/*private Color gfxDefaultNoColor, gfxDefaultColor, gfxDefaultSeparatorColor;
 
 	public Color GfxDefaultNoColor
 	{
 		get
 		{
-			return gfxDefaultNoColor
+			return gfxDefaultNoColor;
 		}
 		set
 		{
@@ -40,7 +44,7 @@ public class VisualArray<T>
 	{
 		get
 		{
-			return gfxDefaultColor
+			return gfxDefaultColor;
 		}
 		set
 		{
@@ -52,13 +56,13 @@ public class VisualArray<T>
 	{
 		get
 		{
-			return gfxDefaultSeparatorColor
+			return gfxDefaultSeparatorColor;
 		}
 		set
 		{
 			gfxDefaultSeparatorColor = value;
 		}
-	}
+	}*/
  
 	//TODO: implement "all" operators that are standard on C# arrays
 	// https://msdn.microsoft.com/en-us/library/system.array_methods(v=vs.110).aspx
@@ -75,20 +79,20 @@ public class VisualArray<T>
 		mOriginal = array;
 	}
 
-	public T this[int i] 
+	public T this[int index] 
 	{
 		get 
 		{
-			return mData[i];
+			return mData[index];
 		}
 		set
 		{
-			mData[i] = value;
+			mData[index] = value;
 
-			VisualArrayHistory _event;
+			VisualArrayHistory<T> _event;
 			_event.type = HISTORY_TYPE.SET;
 			_event.pos = index;
-			_event.data = mData[i];
+			_event.data = mData[index];
 			mHistory.Add(_event);
 		}
 	}
@@ -106,19 +110,19 @@ public class VisualArray<T>
     	return mData.GetEnumerator();
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
+    /*IEnumerator IEnumerable.GetEnumerator()
     { 
     	return GetEnumerator();
-    }
+    }*/
       
-	public void gfxColor(int index, Color color)
+	public void gfxColor(int index) //, Color color)
 	{
 		if (index >= 0 && index < mData.Length)
 		{
-			VisualArrayHistory _event;
+			VisualArrayHistory<T> _event;
 			_event.type = HISTORY_TYPE.COLOR;
 			_event.pos = index;
-			_event.color = color;
+			//_event.color = color;
 			mHistory.Add(_event);
 		}
 	}
@@ -127,31 +131,31 @@ public class VisualArray<T>
 	{
 		if (index >= 0 && index < mData.Length)
 		{
-			VisualArrayHistory _event;
+			VisualArrayHistory<T> _event;
 			_event.type = HISTORY_TYPE.DECOLOR;
 			_event.pos = index;
 			mHistory.Add(_event);
 		}
 	}
 
-	public void gfxSeparate(int leftindex, int size, Color color)
+	public void gfxSeparate(int leftindex, int width) //, Color color)
 	{
-		if (index >= -1 && index <= mData.Length)
+		if (leftindex >= -1 && leftindex <= mData.Length)
 		{
-			VisualArrayHistory _event;
+			VisualArrayHistory<T> _event;
 			_event.type = HISTORY_TYPE.SEPARATE;
 			_event.pos = leftindex;
-			_event.color = color;
-			_event.size = size;
+			//_event.color = color;
+			_event.width = width;
 			mHistory.Add(_event);
 		}
 	}
 
 	public void gfxDeseparate(int leftindex)
 	{
-		if (index >= -1 && index <= mData.Length)
+		if (leftindex >= -1 && leftindex <= mData.Length)
 		{
-			VisualArrayHistory _event;
+			VisualArrayHistory<T> _event;
 			_event.type = HISTORY_TYPE.DESEPARATE;
 			_event.pos = leftindex;
 			mHistory.Add(_event);
@@ -170,7 +174,7 @@ public class VisualArray<T>
 	{
 		mHistory.Clear();
 		mHistoryPlayed.Clear();
-		Array.Copy(mData, 0, mHistory, 0, mData.Length)
+		Array.Copy(mData, 0, mHistory, 0, mData.Length);
 	}
 
 	public void render()
@@ -197,9 +201,9 @@ public class VisualArray<T>
 			op = mHistory[mHistory.Count - 1];
 			mHistory.RemoveAt(mHistory.Count - 1);
 
-			if (op.type == HISTORY_TYPE.SET && mHistory.Length > 1)
+			if (op.type == HISTORY_TYPE.SET && mHistory.Count > 1)
 			{
-				VisualArrayHistory next = mHistory[mHistory.Count - 1];
+				VisualArrayHistory<T> next = mHistory[mHistory.Count - 1];
 
 				if (next.type == HISTORY_TYPE.SET && op.data == mOriginal[next.pos] &&
 					next.data == mOriginal[op.pos])
@@ -225,16 +229,18 @@ public class VisualArray<T>
 
 	private VisualArrayHistory<T> prevOperation() 
 	{
-		if (mHistoryPlayed.Lenth > 0)
+		VisualArrayHistory<T> op = null;
+
+		if (mHistoryPlayed.Count > 0)
 		{
-			VisualArrayHistory<T> op = mHistoryPlayed[mHistoryPlayed.Count - 1];
+			op = mHistoryPlayed[mHistoryPlayed.Count - 1];
 			mHistoryPlayed.RemoveAt(mHistoryPlayed.Count - 1);
 
 			VisualArrayHistory<T> flip = flipOperation(op);
 			mHistory.Insert(0, flip);
-
-			return op;
 		}
+
+		return op;
 	}
 
 	private void executeOperation(VisualArrayHistory<T> op) 
@@ -255,27 +261,27 @@ public class VisualArray<T>
 	{
 		VisualArrayHistory<T> flip = op;
 
-		if (flip.type == SET)
+		if (flip.type == HISTORY_TYPE.SET)
 		{
 			flip.data = mOriginal[op.pos];
 		}
-		else if (flip.type == COLOR) 
+		else if (flip.type == HISTORY_TYPE.COLOR) 
 		{
-			flip.type = DECOLOR;
+			flip.type = HISTORY_TYPE.DECOLOR;
 		}
-		else if (flip.type == DECOLOR) 
+		else if (flip.type == HISTORY_TYPE.DECOLOR) 
 		{
-			flip.type = COLOR;
+			flip.type = HISTORY_TYPE.COLOR;
 
 			//TODO: Find current color of this rectangle and store
 		}
-		else if (flip.type == SEPARATE) 
+		else if (flip.type == HISTORY_TYPE.SEPARATE) 
 		{
-			flip.type = DESEPARATE;
+			flip.type = HISTORY_TYPE.DESEPARATE;
 		}
-		else if (flip.type == DESEPARATE) 
+		else if (flip.type == HISTORY_TYPE.DESEPARATE) 
 		{
-			flip.type = SEPARATE;
+			flip.type = HISTORY_TYPE.SEPARATE;
 
 			//TODO: Find latest separator color and width at this position
 		}
