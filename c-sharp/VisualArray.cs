@@ -180,71 +180,113 @@ public class VisualArray<T>
 		//TODO: Init the GUI
 
 		//TODO: Start rendering loop (use renderFrame)
+
+		// How to update:
+		VisualArrayHistory<T> op = nextOperation(); //or prevOperation();
+		executeOperation(op);
+		//render
+
 	}
 
 	private VisualArrayHistory<T> nextOperation()
 	{
-		//TODO: Flip this operation and add to mHistoryPlayed
+		VisualArrayHistory<T> op = null;
 
 		if (mHistory.Length > 0)
 		{
-			VisualArrayHistory op = mHistory[mHistory.Count - 1];
+			op = mHistory[mHistory.Count - 1];
+			mHistory.RemoveAt(mHistory.Count - 1);
 
 			if (op.type == HISTORY_TYPE.SET && mHistory.Length > 1)
 			{
-				VisualArrayHistory next = mHistory[mHistory.Count - 2];
+				VisualArrayHistory next = mHistory[mHistory.Count - 1];
 
 				if (next.type == HISTORY_TYPE.SET && op.data == mOriginal[next.pos] &&
 					next.data == mOriginal[op.pos])
-				{
-					mOriginal[op.pos] = op.data;
-					mOriginal[next.pos] = next.data;
-					mHistory.RemoveAt(mHistory.Count - 1);
+				{					
 					mHistory.RemoveAt(mHistory.Count - 1);
 
 					op.type = HISTORY_TYPE.SWAP;
 					op.pos2 = next.pos;
 
+					VisualArrayHistory<T> flip = flipOperation(op);
+					mHistoryPlayed.Add(flip);
+
 					return op;
 				}
 
 				// If we did not return here, we should set
-				mOriginal[op.pos] = op.data;
 				mHistory.RemoveAt(mHistory.Count - 1);
-			}
-
-			return op;
+			}			
 		}
-		else
-		{
-			return null;
-		}
+		
+		return op;
 	}
 
 	private VisualArrayHistory<T> prevOperation() 
 	{
-		//TODO
+		if (mHistoryPlayed.Lenth > 0)
+		{
+			VisualArrayHistory<T> op = mHistoryPlayed[mHistoryPlayed.Count - 1];
+			mHistoryPlayed.RemoveAt(mHistoryPlayed.Count - 1);
+
+			VisualArrayHistory<T> flip = flipOperation(op);
+			mHistory.Insert(0, flip);
+
+			return op;
+		}
 	}
 
 	private void executeOperation(VisualArrayHistory<T> op) 
 	{
-		//TODO Execute operation if it is a SET or SWAP operation
+		if (op.type == HISTORY_TYPE.SET)
+		{
+			mOriginal[op.pos] = op.data;
+		}
+		else if (op.type == HISTORY_TYPE.SWAP)
+		{
+			T temp = mOriginal[op.pos];
+			mOriginal[op.pos] = mOriginal[op.pos2];
+			mOriginal[op.pos2] = temp;
+		}
 	}
 
-	private VisualArrayHistory<T> flipOperation(VisualArrayHistory<T> op) {
-		VisualArrayHistory<T> flip;
+	private VisualArrayHistory<T> flipOperation(VisualArrayHistory<T> op) 
+	{
+		VisualArrayHistory<T> flip = op;
 
-		//TODO: Flip if SET,COLOR,DECOLOR,SEPARATE,DESEPARATE
+		if (flip.type == SET)
+		{
+			flip.data = mOriginal[op.pos];
+		}
+		else if (flip.type == COLOR) 
+		{
+			flip.type = DECOLOR;
+		}
+		else if (flip.type == DECOLOR) 
+		{
+			flip.type = COLOR;
+
+			//TODO: Find current color of this rectangle and store
+		}
+		else if (flip.type == SEPARATE) 
+		{
+			flip.type = DESEPARATE;
+		}
+		else if (flip.type == DESEPARATE) 
+		{
+			flip.type = SEPARATE;
+
+			//TODO: Find latest separator color and width at this position
+		}
 
 		return flip;
 	}
 	  
-	private void renderFrame()
+	private void renderFrame(VisualArrayHistory<T> op)
 	{
 		if (mHistory.Count > 0)
 		{
-			VisualArrayHistory op = nextOperation();
-
 			//TODO: Render the changes that are stored in op
 
 			//TODO: A lot of things, use System.Drawable
