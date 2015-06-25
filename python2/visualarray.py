@@ -295,7 +295,7 @@ class VisualArray:
 
 		elif op[0]=='separate':
 			x = self.gfx_windowmargin + self.gfx_left + op[1]*self.gfx_rectwidth
-			line = self.canvas.create_line(x,self.gfx_top,x,self.gfx_bottom,fill=op[2],width=op[3])
+			line = self.canvas.create_line(x,self.gfx_top,x,self.gfx_bottom, fill=op[2], width=op[3], tags="all")
 			self.gfx_separators.append((op[1], line))
 
 		elif op[0]=='deseparate':
