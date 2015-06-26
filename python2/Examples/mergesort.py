@@ -2,13 +2,14 @@ from visualarray import VisualArray
 import random
 
 def mergeSort(alist):
-    print("Splitting ",alist)
     if len(alist)>1:
         mid = len(alist)//2
 
         # Here is the problem, we're creating new arrays
-        lefthalf = VisualArray(alist[:mid])
-        righthalf = VisualArray(alist[mid:])
+        lefthalf = (alist[:mid])
+        righthalf = (alist[mid:])
+
+        alist.gfx_color(mid, "yellow")
 
         mergeSort(lefthalf)
         mergeSort(righthalf)
@@ -34,9 +35,9 @@ def mergeSort(alist):
             alist[k]=righthalf[j]
             j=j+1
             k=k+1
-    print("Merging ",alist)
 
 alist = random.sample(xrange(10,50), 10)
 alist = VisualArray(alist)
 mergeSort(alist)
 print(alist)
+alist.render()

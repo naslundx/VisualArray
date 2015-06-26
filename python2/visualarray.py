@@ -31,7 +31,10 @@ class VisualArray:
 
 
 	def __getitem__(self, key):
-		return self.data[key]
+		if isinstance(key, slice):
+			return VisualArray(self.data[key])
+		else:
+			return self.data[key]
 
 
 	def __setitem__(self, key, value):
