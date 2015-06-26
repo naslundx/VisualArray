@@ -5,12 +5,15 @@ from time import sleep
 from random import randint
 
 class VisualArray:
-	def __init__(self, value, defaultnocolor="white", defaultcolor="green", defaultseparatorcolor="red", autostart=False, animationspeed=100, width=200, height=200):
+	def __init__(self, value, defaultnocolor="white", defaultcolor="green", defaultseparatorcolor="red", autostart=False, animationspeed=100, width=200, height=200, parent=None):
 		# Copy array
 		if isinstance(value,list):
 			self.data = list(value)
 		else:
 			self.data = []
+
+		# To handle recursion
+		self.parentarray = parent
 
 		# Action queue
 		self.original = list(self.data)
@@ -32,12 +35,16 @@ class VisualArray:
 
 	def __getitem__(self, key):
 		if isinstance(key, slice):
-			return VisualArray(self.data[key])
+			me = self
+			return VisualArray(self.data[key], parent=me)
 		else:
 			return self.data[key]
 
 
 	def __setitem__(self, key, value):
+		if self.parentarray:
+			self.parentarray.__setitem__(key, value)
+
 		self.data[key] = value
 		self.action_queue.append([key,value])
 
@@ -110,6 +117,9 @@ class VisualArray:
 
 
 	def gfx_color(self, index, color=None):
+		if self.parentarray:
+			self.parentarray.gfx_color(index, color)
+
 		if index >= 0 and index < len(self.data):
 			if not color:
 				color = self.gfx_defaultcolor
@@ -118,11 +128,17 @@ class VisualArray:
 
 
 	def gfx_decolor(self, index):
+		if self.parentarray:
+			self.parentarray.gfx_decolor(index)
+
 		if index >= 0 and index < len(self.data):
 			self.action_queue.append(["decolor", index])
 
 
 	def gfx_separate(self, left_index, color=None, width=3.0):
+		if self.parentarray:
+			self.parentarray.gfx_separate(left_index, color, width)
+
 		if left_index >= -1 and left_index <= len(self.data):
 			if not color:
 				color = self.gfx_defaultseparatorcolor
@@ -130,6 +146,9 @@ class VisualArray:
 
 
 	def gfx_deseparate(self, left_index):
+		if self.parentarray:
+			self.parentarray.gfx_deseparate(left_index)
+
 		if left_index >= -1 and left_index <= len(self.data):
 			self.action_queue.append(["deseparate", left_index])
 
@@ -180,11 +199,11 @@ class VisualArray:
 	def render(self):
 		# Set gfx constants
 		self.gfx_top = 0
-		self.gfx_left = 0	
-		self.gfx_windowmargin = 10 
-		self.gui_space = 30 
+		self.gfx_left = 0
+		self.gfx_windowmargin = 10
+		self.gui_space = 30
 		self.gfx_scale = (self.gfx_bottom - self.gfx_top - self.gfx_windowmargin) / max(self.data)
-		self.gfx_rectwidth = (self.gfx_right - self.gfx_left - self.gfx_windowmargin) / len(self.data)		
+		self.gfx_rectwidth = (self.gfx_right - self.gfx_left - self.gfx_windowmargin) / len(self.data)
 
 		# Init graphics window
 		self.root = Tkinter.Tk()
@@ -198,14 +217,14 @@ class VisualArray:
 		#self.canvas = self.ResizingCanvas(self.frame) # DK
 		#self.canvas.pack(fill = Tkinter.BOTH) # DK
 		#self.canvas.pack(fill = Tkinter.BOTH, expand = Tkinter.YES) # DK
-		
+
 		# Create rectangles
 		self.gfx_rectangles = []
 		self.gfx_separators = []
 		for i in range(len(self.original)):
-			rect = self.canvas.create_rectangle(self.gfx_windowmargin + self.gfx_left + i*self.gfx_rectwidth, 
-												self.gfx_windowmargin + self.gfx_top, 
-												self.gfx_windowmargin + self.gfx_left + (i+1)*self.gfx_rectwidth, 
+			rect = self.canvas.create_rectangle(self.gfx_windowmargin + self.gfx_left + i*self.gfx_rectwidth,
+												self.gfx_windowmargin + self.gfx_top,
+												self.gfx_windowmargin + self.gfx_left + (i+1)*self.gfx_rectwidth,
 												self.gfx_windowmargin + self.gfx_top + self.original[i]*self.gfx_scale)
 			self.canvas.itemconfig(rect, fill=self.gfx_defaultnocolor)
 			self.gfx_rectangles.append(rect)
@@ -232,18 +251,18 @@ class VisualArray:
 			self.canvas.itemconfig(self.gui_play, text='Pause')
 
 		self.canvas.addtag_all("all") # DK
-		self.root.mainloop()  
+		self.root.mainloop()
 
 
 	def render_next(self, repeat=True):
 		op = self.next_operation()
-		flip = self.flipped_operation(op)	
+		flip = self.flipped_operation(op)
 
 		for item in self.gfx_latest:
 			self.canvas.itemconfig(item, fill=self.gfx_defaultnocolor)
 		self.gfx_latest = []
-		
-		if op:					
+
+		if op:
 			self.execute_operation(op)
 			self.action_queue_played.append(flip)
 
@@ -253,7 +272,7 @@ class VisualArray:
 		else:
 			self.gui_play['text']='Play'
 			self.gfx_playing = False
-		
+
 
 	def render_prev(self):
 		if self.gfx_playing:
@@ -270,7 +289,7 @@ class VisualArray:
 		if op:
 			flip = self.flipped_operation(op)
 			self.execute_operation(op)
-			self.action_queue.insert(0,flip)	
+			self.action_queue.insert(0,flip)
 
 
 	def execute_operation(self, op):
@@ -356,5 +375,5 @@ class VisualArray:
 
 			else:
 				flip[1] = self.original[flip[0]]
-		
+
 		return flip
