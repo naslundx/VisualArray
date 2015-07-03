@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0,'..')
 from visualarray import VisualArray
 import random
 
@@ -7,7 +9,7 @@ def shellSort(array):
          for i in range(gap, len(array)):
              val = array[i]
              j = i
-             
+
              while j >= gap and array[j - gap] > val:
                  array[j] = array[j - gap]
                  j -= gap
