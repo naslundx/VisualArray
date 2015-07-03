@@ -191,6 +191,8 @@ class VisualArray:
 			self.canvas.move(self.gui_prev_wnd, 0, dh)
 			self.canvas.move(self.gui_next_wnd, 0, dh)
 
+			self.canvas.config(width=self.gfx_right, height=self.gfx_bottom + self.gui_space + 10)
+
 		# Recompute rectangle info
 		self.gfx_scale = (self.gfx_bottom - self.gfx_top - self.gfx_windowmargin) / max(self.data)
 		self.gfx_rectwidth = (self.gfx_right - self.gfx_left - self.gfx_windowmargin) / len(self.data)
