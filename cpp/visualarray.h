@@ -143,14 +143,7 @@ public:
 			return;
 		}
 
-		// Find maximal value
-		//TODO: Update this value (and scale if needed) whenever set occurs
-		T maxvalue = 0;
-		for (int i=0; i<mSize; i++) {
-			if (mOriginal[i] > maxvalue) {
-				maxvalue = mOriginal[i];
-			}
-		}	
+		T maxvalue  = findMaxValue(mOriginal, mSize);
 
 		// Init rendering window
 		VisualArrayHistory<T> op;	
@@ -166,43 +159,7 @@ public:
 	        
 	        while (window.pollEvent(event))
 	        {
-	        	switch (event.type) {
-	        		case sf::Event::Closed:
-	        			window.close();
-	        			break;
-
-	        		case sf::Event::Resized:
-	        			//TODO: Reposition and resize everything
-	        			renderFrame(window, op);
-	        			break;
-
-	        		case sf::Event::KeyPressed:
-	        			switch (event.key.code) {
-	        				case sf::Keyboard::Left:
-	        					if (!mHistoryPlayed.empty()) {
-	        						op = prevOperation();
-	        						keypress = true;
-	        					}
-	        					break;
-
-	        				case sf::Keyboard::Right:
-	        					if (!mHistory.empty()) {
-	        						op = nextOperation();
-	        						keypress = true;
-	        					}
-	        					break;
-
-	        				case sf::Keyboard::Space:
-	        					//TODO: Toggle play/pause
-	        					break;
-
-	        				case sf::Keyboard::Escape:
-	        					gfxRestart();
-	        					renderFrame(window, op);
-	        					break;
-	        			}
-	        			break;
-	        	}	            
+				chooseEvent(event, &window, &op, &keypress);
 	        }
 
 	        // Draw to window
@@ -358,6 +315,61 @@ private:
 		}
 
 		return flip;
+	}
+
+	// DK
+	// Find maximum value of an array
+	//TODO: Update this value (and scale if needed) whenever set occurs
+	T findMaxValue(T *data,int mSize){
+		T maxvalue = 0;
+		for (int i=0; i<mSize; i++) {
+			if (data[i] > maxvalue) {
+				maxvalue = data[i];
+			}
+		}	
+		return maxvalue;
+	}
+
+	// DK
+	void chooseEvent(sf::Event event, sf::RenderWindow *window,
+	                 VisualArrayHistory<T> *op, bool *keypress){
+		switch (event.type) {
+			case sf::Event::Closed:
+				window->close();
+				break;
+
+			case sf::Event::Resized:
+				//TODO: Reposition and resize everything
+				renderFrame(*window, *op);
+				break;
+
+			case sf::Event::KeyPressed:
+				switch (event.key.code) {
+					case sf::Keyboard::Left:
+						if (!mHistoryPlayed.empty()) {
+							*op = prevOperation();
+							*keypress = true;
+						}
+						break;
+
+					case sf::Keyboard::Right:
+						if (!mHistory.empty()) {
+							*op = nextOperation();
+							*keypress = true;
+						}
+						break;
+
+					case sf::Keyboard::Space:
+						//TODO: Toggle play/pause
+						break;
+
+					case sf::Keyboard::Escape:
+						gfxRestart();
+						renderFrame(*window, *op);
+						break;
+				}
+				break;
+		}	            
 	}
 
 	// Private data
