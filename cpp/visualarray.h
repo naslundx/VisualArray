@@ -28,7 +28,7 @@ public:
 	VisualArray(int size)  {
 		gfxWindowWidth = 200;
 		gfxWindowHeight = 200;
-		gfxRectangleWidth = 10;			
+		gfxRectangleWidth = 10;
 		gfxLeft = 10;
 		gfxTop = 10;
 
@@ -38,7 +38,7 @@ public:
 			mData = new VisualArrayData<T>[size];
 			mOriginal = new T[size];
 			mSize = size;
-			
+
 			for (int i=0; i<size; i++) {
 				mData[i].setInformation(i, this);
 			}
@@ -67,13 +67,13 @@ public:
 			event.pos = pos;
 			event.data = data;
 			mHistory.push_back(event);
-		}		
+		}
 	}
 
 	void gfxColor(int index, Color color) {
 		if (index >= 0 && index < mSize) {
 			VisualArrayHistory<T> event;
-			
+
 			event.type = COLOR;
 			event.pos = index;
 			event.color = color;
@@ -85,7 +85,7 @@ public:
 	void gfxDecolor(int index) {
 		if (index >= 0 && index < mSize) {
 			VisualArrayHistory<T> event;
-			
+
 			event.type = DECOLOR;
 			event.pos = index;
 
@@ -96,7 +96,7 @@ public:
 	void gfxSeparate(int leftindex, float size, Color color) {
 		if (leftindex >= -1 && leftindex <= mSize) {
 			VisualArrayHistory<T> event;
-			
+
 			event.type = SEPARATE;
 			event.pos = leftindex;
 			event.size = size;
@@ -109,7 +109,7 @@ public:
 	void gfxDeseparate(int leftindex) {
 		if (leftindex >= -1 && leftindex <= mSize) {
 			VisualArrayHistory<T> event;
-			
+
 			event.type = DESEPARATE;
 			event.pos = leftindex;
 
@@ -143,23 +143,24 @@ public:
 			return;
 		}
 
-		T maxvalue  = findMaxValue(mOriginal, mSize);
+		//TODO: Update this value (and scale if needed) whenever set occur
+		T maxvalue  = findMaxValue(mOriginal);
 
 		// Init rendering window
-		VisualArrayHistory<T> op;	
-		sf::Event event;	
+		VisualArrayHistory<T> op;
+		sf::Event event;
 		gfxRectangleScale = (gfxWindowHeight-gfxTop*2)/maxvalue;
 		sf::RenderWindow window(sf::VideoMode(gfxWindowWidth, gfxWindowHeight), "VisualArray");
 		bool keypress = true;
-	    
+
 	    // Start rendering loop
 	    while (window.isOpen())
 	    {
 	    	//TODO: Nothing happens...?
-	        
+
 	        while (window.pollEvent(event))
 	        {
-				chooseEvent(event, &window, &op, &keypress);
+						chooseEvent(event, window, op, keypress);
 	        }
 
 	        // Draw to window
@@ -176,15 +177,15 @@ public:
 private:
 	// Get the next operation
 	VisualArrayHistory<T> nextOperation() {
-		VisualArrayHistory<T> op = mHistory.front(); 
+		VisualArrayHistory<T> op = mHistory.front();
 		mHistory.pop_front();
-		
+
 		if (op.type == SET) {
 			if (!mHistory.empty()) {
 				VisualArrayHistory<T> opb = mHistory.front();
 
 				// Check if swap
-				if (opb.type == SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {			
+				if (opb.type == SET && op.data == mOriginal[opb.pos] && opb.data == mOriginal[op.pos]) {
 					op.type = SWAP;
 					op.pos2 = opb.pos;
 
@@ -201,7 +202,7 @@ private:
 
 	// Get previous operation (used for stepping back) - not used yet
 	VisualArrayHistory<T> prevOperation() {
-		VisualArrayHistory<T> op = mHistoryPlayed.top(); 
+		VisualArrayHistory<T> op = mHistoryPlayed.top();
 		mHistoryPlayed.pop();
 
 		VisualArrayHistory<T> flip = flipOperation(op);
@@ -241,7 +242,7 @@ private:
 	    	rectangle.setPosition(gfxLeft + gfxRectangleWidth * i, gfxTop);
 	    	mRectangles.push_back(rectangle);
 	    }
-	    
+
 	    // Handle gfx events
 		if (op.type == COLOR) {
 			mRectangleColors.push_front(std::pair<int, sf::Color>(op.pos, sf::Color(0, 0, 255)));
@@ -317,22 +318,19 @@ private:
 		return flip;
 	}
 
-	// DK
 	// Find maximum value of an array
-	//TODO: Update this value (and scale if needed) whenever set occurs
-	T findMaxValue(T *data,int mSize){
+	T findMaxValue(T *data){
 		T maxvalue = 0;
 		for (int i=0; i<mSize; i++) {
 			if (data[i] > maxvalue) {
 				maxvalue = data[i];
 			}
-		}	
+		}
 		return maxvalue;
 	}
 
-	// DK
-	void chooseEvent(sf::Event event, sf::RenderWindow *window,
-	                 VisualArrayHistory<T> *op, bool *keypress){
+	void chooseEvent(sf::Event event, sf::RenderWindow &window,
+	                 VisualArrayHistory<T> &op, bool &keypress){
 		switch (event.type) {
 			case sf::Event::Closed:
 				window->close();
@@ -340,22 +338,22 @@ private:
 
 			case sf::Event::Resized:
 				//TODO: Reposition and resize everything
-				renderFrame(*window, *op);
+				renderFrame(window, op);
 				break;
 
 			case sf::Event::KeyPressed:
 				switch (event.key.code) {
 					case sf::Keyboard::Left:
 						if (!mHistoryPlayed.empty()) {
-							*op = prevOperation();
-							*keypress = true;
+							op = prevOperation();
+							keypress = true;
 						}
 						break;
 
 					case sf::Keyboard::Right:
 						if (!mHistory.empty()) {
-							*op = nextOperation();
-							*keypress = true;
+							op = nextOperation();
+							keypress = true;
 						}
 						break;
 
@@ -365,11 +363,11 @@ private:
 
 					case sf::Keyboard::Escape:
 						gfxRestart();
-						renderFrame(*window, *op);
+						renderFrame(window, op);
 						break;
 				}
 				break;
-		}	            
+		}
 	}
 
 	// Private data
@@ -386,7 +384,7 @@ private:
 	// Data for graphics rendering
 	float gfxWindowWidth;
 	float gfxWindowHeight;
-	float gfxRectangleWidth;			
+	float gfxRectangleWidth;
 	float gfxLeft;
 	float gfxTop;
 	float gfxRectangleScale;
@@ -410,18 +408,18 @@ public:
 	}
 
 	void setInformation(int pos, VisualArray<T>* parent) {
-		this->pos = pos; 
+		this->pos = pos;
 		this->parent = parent;
 	}
 
 	void reportChange() {
 		if (parent != NULL) {
 			parent->addSetEvent(this->pos, this->data);
-		}	
-	}	
+		}
+	}
 
 	operator T() {
-		return (T)(this->data); 
+		return (T)(this->data);
 	}
 
 	VisualArrayData<T>& operator = (T& other) {
@@ -435,7 +433,7 @@ public:
 		reportChange();
 		return *this;
 	}
-	
+
 	VisualArrayData<T>& operator += (VisualArrayData<T>& right) {
 		this->data += right;
 		reportChange();
@@ -465,7 +463,7 @@ public:
 		reportChange();
 		return *this;
 	}
-	
+
 	VisualArrayData<T>& operator += (T right) {
 		this->data += right;
 		reportChange();
@@ -500,7 +498,7 @@ public:
 		++data;
 		reportChange();
 		return *this;
-	} 
+	}
 
 	VisualArrayData<T> operator++(int unused) {
 		VisualArrayData result = *this;
