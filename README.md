@@ -22,7 +22,7 @@ Please feel free to help out.
 - **Python**: Working and feature-complete. GUI problems. No animations. Graphics in Tkinter.
 - **C++**: Partially works. Graphics problems. GUI not implemented. Graphics in SFML.
 - **C#**: Not working. Engine not finished and GUI not implemented. Graphics in SFML.
+- **Java**: Not working. Instead of emulating array (Which is impossible) it emulates an ArrayList.
 - (**Javascript** Not started.)
-- (**Java**: Not started.)
 
 The above five languages are of current focus, although it's unclear how well this can be done in Java. Perl and Ruby may be future additions.
