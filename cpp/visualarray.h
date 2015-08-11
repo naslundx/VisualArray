@@ -333,7 +333,7 @@ private:
 	                 VisualArrayHistory<T> &op, bool &keypress){
 		switch (event.type) {
 			case sf::Event::Closed:
-				window->close();
+				window.close();
 				break;
 
 			case sf::Event::Resized:
@@ -521,6 +521,68 @@ public:
 	}
 
 	//TODO: Add bitwise operators & | ^ &= |= ^= << >> <<= >>= ~
+
+	//DK
+	VisualArrayData<T> operator & (VisualArrayData<T> right) {
+		//reportChange();
+		return this->data & right;
+	}
+
+	VisualArrayData<T> operator | (VisualArrayData<T> right) {
+		//reportChange();
+		return this->data | right;
+	}
+
+	VisualArrayData<T> operator ^ (VisualArrayData<T> right) {
+		//reportChange();
+		return this->data ^ right;
+	}
+
+	VisualArrayData<T> operator << (VisualArrayData<T> right) {
+		//reportChange();
+		return this->data << right;
+	}
+
+	VisualArrayData<T> operator >> (VisualArrayData<T> right) {
+		//reportChange();
+		return this->data >> right;
+	}
+
+	VisualArrayData<T> operator ~ () {
+		//reportChange();
+		return ~this->data;
+	}
+
+	VisualArrayData<T>& operator &= (VisualArrayData<T>& right) {
+		this->data = this->data & right;
+		reportChange();
+		return *this;
+	}
+	
+	VisualArrayData<T>& operator |= (VisualArrayData<T>& right) {
+		this->data = this->data | right;
+		reportChange();
+		return *this;
+	}
+
+	VisualArrayData<T>& operator ^= (VisualArrayData<T>& right) {
+		this->data = this->data ^ right;
+		reportChange();
+		return *this;
+	}
+
+	VisualArrayData<T>& operator <<= (VisualArrayData<T>& right) {
+		this->data = this->data << right;
+		reportChange();
+		return *this;
+	}
+
+	VisualArrayData<T>& operator >>= (VisualArrayData<T>& right) {
+		this->data = this->data >> right;
+		reportChange();
+		return *this;
+	}
+
 	//TODO: Add cout << and cin >> overloads (if needed?)
 };
 
