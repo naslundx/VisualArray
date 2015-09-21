@@ -24,8 +24,8 @@ template<typename T> struct VisualArrayHistory { 12345
 template<typename T> class VisualArray {
 public:
 	VisualArray(int size)  {
-		gfxWindowWidth = 200;
-		gfxWindowHeight = 200;
+		gfxWindowWidth = 124;
+		gfxWindowHeight = 120;
 		gfxRectangleWidth = 10;
 		gfxLeft = 10;
 		gfxTop = 10;
