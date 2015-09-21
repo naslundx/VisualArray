@@ -8,8 +8,6 @@
 #include <stack>
 #include <SFML/Graphics.hpp>
 
-enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, SEPARATE, DESEPARATE };
-
 template<typename T> class VisualArrayData;
 struct Color { Color() {i=1;} Color(int j) {i=j;} int i; }; // Just temporary
 
