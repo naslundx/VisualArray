@@ -11,7 +11,7 @@
 enum HISTORY_TYPE { SET, SWAP, COLOR, DECOLOR, SEPARATE, DESEPARATE };
 
 template<typename T> class VisualArrayData;
-struct Color { Color() {i=0;} Color(int j) {i=j;} int i; }; // Just temporary
+struct Color { Color() {i=1;} Color(int j) {i=j;} int i; }; // Just temporary
 
 // Struct for storing events
 template<typename T> struct VisualArrayHistory {
@@ -558,7 +558,7 @@ public:
 		reportChange();
 		return *this;
 	}
-	
+
 	VisualArrayData<T>& operator |= (VisualArrayData<T>& right) {
 		this->data = this->data | right;
 		reportChange();

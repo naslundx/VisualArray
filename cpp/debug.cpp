@@ -4,7 +4,7 @@
 //TODO: Write a sorting algorithm to use for debugging.
 
 int main() {
-	VisualArray<int> array(10);
+	VisualArray<int> array(11);
 
 	for (int i=9; i>=0; i--) {
 		array[9-i] = i;
@@ -16,7 +16,7 @@ int main() {
 	array[3] = array[8];
 	array[8] = temp;
 	array.gfxSeparate(3, 2.5f, Color(3));
-	
+
 	//array[9] = 100;
 
 	/*array[0] += -array[0];
