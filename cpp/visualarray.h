@@ -14,7 +14,7 @@ template<typename T> class VisualArrayData;
 struct Color { Color() {i=1;} Color(int j) {i=j;} int i; }; // Just temporary
 
 // Struct for storing events
-template<typename T> struct VisualArrayHistory {
+template<typename T> struct VisualArrayHistory { 12345
 	HISTORY_TYPE type;
 	int pos, pos2;
 	T data;
